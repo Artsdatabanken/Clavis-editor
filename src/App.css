@@ -1,38 +1,75 @@
-.App {
-  text-align: center;
-}
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.page {
+  display: flex;
+  flex-direction: row;
   min-height: 100vh;
+}
+
+.menu-section {
+  width: 210px;
+  border-right: 1px solid #d4d4d4;
+
+}
+
+.content-section {
+  flex-grow: 1;
+  padding: 40px;
+  background-color: #f6f7f9;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.taxonSearch {
+  width: 100%;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.sideBySide {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.suggestions {
+  flex-wrap: wrap;
+  justify-content: start;
+}
+
+.suggestions > * {
+  cursor: pointer;
+}
+
+.sideBySide > div {
+  margin: 10px;
+}
+
+
+.cardContent {
+  flex-grow: 1;
+}
+
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-left: 20px;
+}
+
+.formCard {
+  margin-bottom: 10px;
+}
+
+.testview {
+  display: flex;
+  position: relative;
+  flex-grow: 1;
+}
+
+.testview .MuiDrawer-root * {
+  position: relative;
+}
+
+.taxonContainer {
+  margin-top: .5em;
+  margin-bottom: .5em;
 }

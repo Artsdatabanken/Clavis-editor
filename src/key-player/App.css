@@ -1,0 +1,38 @@
+.button--green {
+  background-color: olivedrab !important;
+  color: white !important;
+}
+
+.button--red {
+  background-color: firebrick !important;
+  color: white !important;
+}
+
+.button--orange {
+  background-color: rgb(245, 124, 0) !important;
+  color: white !important;
+}
+
+.metadataTable td {
+  vertical-align: top;
+  padding: 0 2em 0.2em 0;
+}
+
+.react-autosuggest__container {
+  margin-bottom: 20px;
+}
+
+.react-autosuggest__suggestions-list {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.react-autosuggest__suggestion {
+  cursor: pointer;
+  padding: 10px 20px;
+  border: solid 1px #999;
+  background-color: white;
+}
