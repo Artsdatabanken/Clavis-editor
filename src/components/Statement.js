@@ -18,6 +18,11 @@ function Statement({ statement, characters, taxa, setStatementValue, setEditing,
     character = characters.find(x => x.id === statement[0].character)
   }
 
+  let taxon
+  if (!!statement[0].taxon) {
+    taxon = flattenTaxa(taxa).find(x => x.id === statement[0].taxon)
+  }
+  
   return (
     <Draggable key={statement[0].id} draggableId={statement[0].id} index={index}>
       {(provided, snapshot) => (
@@ -37,7 +42,10 @@ function Statement({ statement, characters, taxa, setStatementValue, setEditing,
                 <div className="sideBySide" style={{ flexGrow: "1" }}>
                   <div style={{ flexGrow: "1" }}>
                     <div><b>Taxon:</b>&nbsp;
-                      <i>{flattenTaxa(taxa).find(x => x.id === statement[0].taxon)["scientificName"]}</i>
+                      <i>{taxon["scientificName"]}</i>
+                      { !!taxon.label &&
+                        <span>({getBestString(taxon.label)})</span>
+                      }
                     </div>
 
                     <div><b>Character:</b>&nbsp;
