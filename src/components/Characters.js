@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { search, getBestString, getImgSrc, deepClone, getEditableItems, getEditingItems, reorder, getDraggableItemStyle } from "../Utils"
 
-function Characters({ characters, mediaElements, languages, newImage, replaceItem, deleteItem }) {
+function Characters({ characters, statements, mediaElements, languages, newImage, replaceItem, deleteItem }) {
   const [addingImageTo, setAddingImageTo] = useState(false);
   const [filtered, setFiltered] = useState(characters);
   const [editingField, setEditingField] = useState({});
@@ -46,6 +46,7 @@ function Characters({ characters, mediaElements, languages, newImage, replaceIte
 
   const remove = (item) => {
     setFiltered(replaceItem(deleteItem(item), "characters"))
+
   }
 
   // Adds an (existing) image to an item by referring to its id. Generic enough for copy-paste
@@ -208,7 +209,7 @@ function Characters({ characters, mediaElements, languages, newImage, replaceIte
                   </FormControl>
                 </CardContent>
                 <CardContent>
-                  <States character={character} languages={languages} mediaElements={mediaElements} newImage={newImage} replaceItem={replaceCharacter} deleteItem={deleteItem} />
+                  <States character={character} statements={statements} languages={languages} mediaElements={mediaElements} newImage={newImage} replaceItem={replaceCharacter} deleteItem={deleteItem} />
                 </CardContent>
               </FormControl>
             </AccordionDetails>

@@ -5,35 +5,70 @@ import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 
-import { Fab, Alert, AlertTitle, TextField, InputAdornment } from "@mui/material";
+import {
+  Fab, Alert, AlertTitle, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogContentText,
+  DialogActions, Button, Select, MenuItem
 
-import { search, deepClone, flattenTaxa, reorder } from "../Utils"
+
+
+} from "@mui/material";
+
+import { search, deepClone, flattenTaxa, reorder, getBestString } from "../Utils"
 
 
 import Statement from "./Statement";
 
-function Statements({ statements, characters, taxa, languages, replaceItem, deleteItem}) {
+function Statements({ statements, characters, taxa, languages, replaceItem, deleteItem }) {
   const [editing, setEditing] = useState(false);
   const [filtered, setFiltered] = useState(statements);
+  const [newItem, setNewItem] = useState(false);
+
+  const pool = (items) => {
+    let pooled = []
+
+    items.forEach(item => {
+      if(!pooled.length || pooled[pooled.length-1][0].taxon !== item.taxon || pooled[pooled.length-1][0].character !== item.character) {
+        pooled = [...pooled, [item]]
+      }
+      else {
+        pooled[pooled.length-1].push(item)
+      }
+    })
+    return pooled
+  }
 
   const deleteStatement = (statement) => {
     setFiltered(replaceItem(deleteItem(statement), "statements"))
   }
 
-
+  // Adds a new character to the list of characters and replaces that list to this updated one
   const addStatement = () => {
     statements = deepClone(statements);
-    let id = "statement:" + uuidv4().replaceAll("-", "")
-    statements.push(
-      {
-        "id": id,
-        "frequency": 1
-      }
-    )
+    const character = characters.find(x => x.id === newItem.character)
+
+    character.states.forEach(state => {
+      let adding = deepClone(newItem)
+      adding.value = state.id
+      adding.id = "statement:" + uuidv4().replaceAll("-", "")
+      statements.push(
+        adding
+      )
+    });
+
     replaceItem(statements)
-    setEditing(id)
     setFiltered(statements)
+    setNewItem(false)
   }
+
+  const createStatement = () => {
+    const id = "statement:" + uuidv4().replaceAll("-", "")
+    setNewItem({
+      "id": id
+    })
+  }
+
+
+
 
   const setStatementValue = (field, statement, value) => {
     statement[field] = value
@@ -81,7 +116,7 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
       result.source.index,
       result.destination.index
     );
-    
+
     replaceItem(items)
     setFiltered(items)
   }
@@ -130,7 +165,7 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {filtered.map(function (statement, index) {
+              {pool(filtered).map(function (statement, index) {
                 return <Statement statement={statement} characters={characters} taxa={taxa} languages={languages} setStatementValue={setStatementValue} setEditing={setEditing} editing={editing} deleteItem={deleteStatement} replaceItem={replaceItem} index={index} />
               })}
               {provided.placeholder}
@@ -143,8 +178,64 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
 
 
       {!!languages.length && !!taxa.length && !!characters.length &&
-        <Fab color="primary" aria-label="add statement" onClick={addStatement}><AddIcon /></Fab>
+        <Fab color="primary" aria-label="add statement" onClick={createStatement}><AddIcon /></Fab>
       }
+
+
+
+      {!!newItem &&
+        <Dialog open={true}>
+          <DialogTitle>Add character</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Specify the title of the new character
+            </DialogContentText>
+
+
+            <p><b>Taxon:</b>&nbsp;
+              <Select
+                fullWidth
+                sx={{ m: 0, marginY: "5px" }}
+                id="statement-taxon"
+                value={newItem["taxon"]}
+                onChange={(e) => {
+                  let statement = deepClone(newItem)
+                  statement.taxon = e.target.value
+                  setNewItem(statement)
+                }}
+              >
+                {flattenTaxa(taxa).map(taxon =>
+                  <MenuItem value={taxon["id"]}>{taxon["level"]}{taxon["scientificName"] || getBestString(taxon["label"])}</MenuItem>
+                )}
+              </Select>
+            </p>
+
+            <p><b>Character:</b>&nbsp;
+              <Select
+                fullWidth
+                sx={{ m: 0, marginY: "5px" }}
+                id="statement-character"
+                value={newItem["character"]}
+                onChange={(e) => {
+                  let statement = deepClone(newItem)
+                  statement.character = e.target.value
+                  setNewItem(statement)
+                }}
+              >
+                {characters.map(character =>
+                  <MenuItem value={character["id"]}>{getBestString(character["title"])}</MenuItem>
+                )}
+              </Select>
+            </p>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setNewItem(false) }}>Cancel</Button>
+            <Button onClick={() => { addStatement() }}>Add</Button>
+          </DialogActions>
+        </Dialog>
+      }
+
+
     </div>
 
 

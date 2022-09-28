@@ -11,7 +11,7 @@ import { getImgSrc, getEditableItems, deepClone, getBestString, reorder, getDrag
 import ImageSelector from "./ImageSelector";
 
 
-function States({ character, languages, mediaElements, newImage, replaceItem, deleteItem }) {
+function States({ character, statements, languages, mediaElements, newImage, replaceItem, deleteItem }) {
   const [addingImageTo, setAddingImageTo] = useState(false);
   const [editingField, setEditingField] = useState({});
   const [removing, setRemoving] = useState(false);
@@ -49,17 +49,36 @@ function States({ character, languages, mediaElements, newImage, replaceItem, de
 
   const addState = () => {
     let states = deepClone(character["states"]);
+
+    const lastState = !!states.length ? states[states.length-1]["id"] : false
+    const lastStatement = statements.find(x => x.value === lastState)
+
+    const id = "state:" + uuidv4().replaceAll("-", "")
     states.push(
       {
-        "id": "state:" + uuidv4().replaceAll("-", "")
+        "id": id
       }
     )
     character["states"] = states
+
     replaceItem(character)
+    
+
+    if(!!lastStatement) {
+      let updatedStatements = deepClone(statements)
+      updatedStatements.splice(statements.findIndex(x => x.id === lastStatement.id)+1, 0, {
+        "id": "statement:" + uuidv4().replaceAll("-", ""),
+        "taxon": lastStatement.taxon,
+        "character": lastStatement.character,
+        "value": id
+      })
+      replaceItem(updatedStatements);
+    }
   }
 
   const remove = (state) => {
     replaceItem(deleteItem(state))
+    replaceItem(deepClone(statements).filter(x => x.value !== state.id))
   }
 
 
@@ -126,6 +145,10 @@ function States({ character, languages, mediaElements, newImage, replaceItem, de
                       }
                     }} variant="contained"><DeleteIcon /></IconButton>
                 </h4>
+                
+
+
+
                 {getEditableItems({
                   "item": state,
                   "field": "title",
@@ -148,11 +171,6 @@ function States({ character, languages, mediaElements, newImage, replaceItem, de
 
     );
   }
-
-
-
-
-
 
 
 
