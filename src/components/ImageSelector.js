@@ -3,6 +3,7 @@ import {
   TextField, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
   FormLabel, Avatar
 } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
 
 import axios from "axios";
 import "../App.css";
@@ -10,10 +11,11 @@ import "../App.css";
 function ImageSelector({ callback, scientificNameId, newImage }) {
   const [image, setImage] = useState()
   const [imageSuggestions, setImageSuggestions] = useState(false);
+  const [loadingImageSuggestions, setLoadingImageSuggestions] = useState(true);
 
   const addImage = (add) => {
     callback(newImage(add))
-    }
+  }
 
   if (!imageSuggestions && !!scientificNameId) {
     axios
@@ -23,6 +25,7 @@ function ImageSelector({ callback, scientificNameId, newImage }) {
       )
       .then((res) => {
         setImageSuggestions(res.data.data);
+        setLoadingImageSuggestions(false)
       });
   }
 
@@ -31,7 +34,7 @@ function ImageSelector({ callback, scientificNameId, newImage }) {
       <DialogTitle>Add picture</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Provide and image for this taxon in the form of the ID of a media element at NBIC, or click a suggested image if any were found.
+          Provide and image for this taxon in the form of an url, the ID of a media element at NBIC, or click a suggested image if any were found.
         </DialogContentText>
         <TextField
           autoFocus
@@ -48,6 +51,11 @@ function ImageSelector({ callback, scientificNameId, newImage }) {
             <FormLabel component="legend">Suggestions</FormLabel>
 
             <div className="sideBySide suggestions">
+
+              {!!loadingImageSuggestions &&
+                <CircularProgress size={25} />
+              }
+
               {imageSuggestions["images"].map(i => {
                 return <Avatar
                   sx={{ width: 64, height: 64 }}
