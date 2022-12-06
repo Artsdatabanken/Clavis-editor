@@ -29,7 +29,7 @@ function MenuBar() {
           <ListItemIcon>
             <CloudSyncIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Import/Export</ListItemText>
+          <ListItemText>Load/Save</ListItemText>
         </MenuItem>
         <Divider title="Key content" />
         <MenuItem onClick={() => navigate('/')}>

@@ -40,7 +40,7 @@ function Character(props) {
                 <HelpIcon style={{ marginRight: ".5em" }} />
               )}
 
-            {props.character.title.no}
+            {props.character.title.nb || props.character.title.nn || props.character.title.en}
           </div>
         }
         onClick={

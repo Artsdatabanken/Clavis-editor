@@ -6,6 +6,7 @@ import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import RestoreIcon from "@mui/icons-material/Restore";
 
 import { getRelevantTaxaCount } from "../utils/logic";
+import { capitalize } from "../utils/helpers";
 
 function Taxon(props) {
   // props.taxon.vernacularName =
@@ -60,7 +61,7 @@ function Taxon(props) {
       style={{ fontSize: "1.12em", lineHeight: ".5em" }}
       gutterBottom
     >
-      {vernacularName["en"] || vernacularName["nb"] || vernacularName["nn"]}{" "}
+      {capitalize(vernacularName["en"] || vernacularName["nb"] || vernacularName["nn"] || scientificName)}{" "}
       {props.taxon.children &&
         !props.taxon.isResult &&
         "(" + getRelevantTaxaCount(props.taxon) + ")"}
@@ -73,11 +74,11 @@ function Taxon(props) {
     </Typography>
   );
 
-  let cardStyle = {cursor: "pointer"};
+  let cardStyle = { cursor: "pointer" };
   if (props.filter === "irrelevant") {
     cardStyle.backgroundColor = "#eee";
   }
-  
+
   return (
     <Card variant="outlined" style={cardStyle}>
       <div style={{ display: "flex" }}>

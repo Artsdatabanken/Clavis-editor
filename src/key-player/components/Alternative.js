@@ -11,9 +11,7 @@ function getMedia(props) {
     return (
       <Avatar
         variant="square"
-        src={
-          props.alternative.media.mediaElement.find((m) => m.height >= 128).url
-        }
+        src={"https://www.artsdatabanken.no/Media/" + props.alternative.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=128x128"}
         style={{ flex: "0 0 128px", height: "128px" }}
       />
     );
@@ -53,7 +51,7 @@ function AlternativeContent(props) {
           flexWrap: "wrap",
         }}
       >
-        {media ? <Hidden xsDown>{title.no}</Hidden> : <div>{title.no} </div>}
+        {media ? <Hidden xsDown>{title.nb || title.nn || title.en}</Hidden> : <div>{title.nb || title.nn || title.en} </div>}
       </div>
     </div>
   );
@@ -131,7 +129,7 @@ function Alternative(props) {
               padding: "15px",
             }}
           >
-            {alternative.title.no}
+            {alternative.title.nb}
           </div>
         </Hidden>
       )}

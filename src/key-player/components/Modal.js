@@ -216,13 +216,13 @@ function Modal(props) {
           {content.media && (
             <div>
               <img
+
+
+// src={"https://www.artsdatabanken.no/Media/" + props.alternative.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=128x128"}
+
+
                 src={
-                  (
-                    content.media.mediaElement.find((m) => m.height >= 1280) ||
-                    content.media.mediaElement[
-                    content.media.mediaElement.length - 1
-                    ]
-                  ).url
+                    "https://www.artsdatabanken.no/Media/" + content.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=1280x1280"
                 }
                 style={{
                   maxHeight: "50vh",
@@ -231,7 +231,7 @@ function Modal(props) {
                   marginLeft: "auto",
                   marginRight: "auto",
                 }}
-                alt={`Bilde: ${content.title.no}`}
+                alt={`Bilde: ${content.title.nb}`}
               />
             </div>
           )}

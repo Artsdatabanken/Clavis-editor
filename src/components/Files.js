@@ -43,10 +43,10 @@ function Files({ clavis, setClavis }) {
       <Card className="formCard" >
         <CardContent>
           <p>To load a key from disk, upload it here.</p>
-          <Alert fullWidth severity="warning">Don't forget to export the current key first if you want to save it!</Alert>
+          <Alert fullWidth severity="warning">Don't forget to save the current key to your local disk first if you want to keep it!</Alert>
 
           <Button variant="contained" component="label" color="primary">
-            Import key
+            Load key
             <input type="file" hidden onChange={uploadKey} />
           </Button>
         </CardContent>
@@ -54,8 +54,8 @@ function Files({ clavis, setClavis }) {
 
       <Card className="formCard" >
         <CardContent>
-          <p>This editor does store your files. To save the current key, download it as a file here so you can share it or continue editing some other time.</p>
-          <Button variant="contained" onClick={downloadKey}>Export key</Button>
+          <p>This editor does NOT store any identification keys. To save the current key, download it to your local drive here so you can share it or continue editing some other time.</p>
+          <Button variant="contained" onClick={downloadKey}>Save key</Button>
         </CardContent>
       </Card>
 
