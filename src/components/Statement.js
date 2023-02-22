@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Draggable } from "react-beautiful-dnd";
 
 import {
   Card, IconButton, ButtonGroup, Button, Accordion, AccordionSummary, AccordionDetails
@@ -7,10 +6,10 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-import { flattenTaxa, getBestString, getDraggableItemStyle } from "../Utils"
+import { flattenTaxa, getBestString } from "../Utils"
 
 
-function Statement({ statement, characters, taxa, setStatementValue, setEditing, editing, replaceItem, deleteItem, index }) {
+function Statement({ statement, characters, taxa, setStatementValue, deleteItem, index }) {
   const [removing, setRemoving] = useState(false);
 
   let character
@@ -24,21 +23,14 @@ function Statement({ statement, characters, taxa, setStatementValue, setEditing,
   }
   
   return (
-    <Draggable key={statement[0].id} draggableId={statement[0].id} index={index}>
-      {(provided, snapshot) => (
+    <div key={statement[0].id} index={index}>
+      {
         <div
           className="taxonContainer"
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          style={getDraggableItemStyle(
-            snapshot.isDragging,
-            provided.draggableProps.style
-          )}
         >
-          <Card className="formCard"  {...provided.dragHandleProps}>
-
+          <Card className="formCard">
             <Accordion>
-              <AccordionSummary {...provided.dragHandleProps} expandIcon={<ExpandMoreIcon />}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <div className="sideBySide" style={{ flexGrow: "1" }}>
                   <div style={{ flexGrow: "1" }}>
                     <div><b>Taxon:</b>&nbsp;
@@ -87,9 +79,9 @@ function Statement({ statement, characters, taxa, setStatementValue, setEditing,
             </Accordion>
           </Card >
         </div>
-      )}
+      }
 
-    </Draggable >
+    </div >
   );
 }
 

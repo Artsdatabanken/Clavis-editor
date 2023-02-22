@@ -14,9 +14,6 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
     const [currentCharacter, setCurrentCharacter] = useState(false);
     const [currentStatements, setCurrentStatements] = useState([]);
     const [statementsAreNew, setStatementsAreNew] = useState(false);
-    const [taxonSearchString, setTaxonSearchString] = useState("");
-    const [stateSearchString, setStateSearchString] = useState("");
-    const [characterSearchString, setCharacterSearchString] = useState("");
     const [highlightedTaxon, setHighlightedTaxon] = useState(false);
     const [highlightedCharacter, setHighlightedCharacter] = useState(false);
 

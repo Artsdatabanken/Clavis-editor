@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -13,7 +12,7 @@ import {
 
 } from "@mui/material";
 
-import { search, deepClone, flattenTaxa, reorder, getBestString } from "../Utils"
+import { search, deepClone, flattenTaxa, getBestString } from "../Utils"
 
 
 import Statement from "./Statement";
@@ -27,11 +26,11 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
     let pooled = []
 
     items.forEach(item => {
-      if(!pooled.length || pooled[pooled.length-1][0].taxon !== item.taxon || pooled[pooled.length-1][0].character !== item.character) {
+      if (!pooled.length || pooled[pooled.length - 1][0].taxon !== item.taxon || pooled[pooled.length - 1][0].character !== item.character) {
         pooled = [...pooled, [item]]
       }
       else {
-        pooled[pooled.length-1].push(item)
+        pooled[pooled.length - 1].push(item)
       }
     })
     return pooled
@@ -105,21 +104,6 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
     })
   }
 
-  const onDragEnd = (result) => {
-    // dropped outside the list
-    if (!result.destination) {
-      return;
-    }
-
-    const items = reorder(
-      statements,
-      result.source.index,
-      result.destination.index
-    );
-
-    replaceItem(items)
-    setFiltered(items)
-  }
 
   return (
     <div>
@@ -158,23 +142,11 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
       }
 
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="droppable" type={"ROOT"}>
-          {(provided, snapshot) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {pool(filtered).map(function (statement, index) {
-                return <Statement statement={statement} characters={characters} taxa={taxa} languages={languages} setStatementValue={setStatementValue} setEditing={setEditing} editing={editing} deleteItem={deleteStatement} replaceItem={replaceItem} index={index} />
-              })}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-
-
+      <div>
+        {pool(filtered).map(function (statement, index) {
+          return <Statement statement={statement} characters={characters} taxa={taxa} languages={languages} setStatementValue={setStatementValue} setEditing={setEditing} editing={editing} deleteItem={deleteStatement} replaceItem={replaceItem} index={index} />
+        })}
+      </div>
 
 
       {!!languages.length && !!taxa.length && !!characters.length &&
