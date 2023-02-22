@@ -75,7 +75,7 @@ function Statement({ statement, characters, taxa, setStatementValue, setEditing,
                       <div>{getBestString(character["states"].find(x => x.id === fact.value)["title"])}</div>
                       <ButtonGroup size="small" aria-label="outlined primary button group">
                         <Button variant={fact.frequency === 1 ? "contained" : "outlined"} color="success" onClick={e => setStatementValue("frequency", fact, 1)}>Always</Button>
-                        <Button variant={fact.frequency !== 1 && fact.frequency !== 0 ? "contained" : "outlined"} color="warning" onClick={e => setStatementValue("frequency", fact, .5)}>In some cases</Button>
+                        <Button variant={fact.frequency !== 1 && fact.frequency > 0 ? "contained" : "outlined"} color="warning" onClick={e => setStatementValue("frequency", fact, .5)}>In some cases</Button>
                         <Button variant={fact.frequency === 0 ? "contained" : "outlined"} color="error" onClick={e => setStatementValue("frequency", fact, 0)}>Never</Button>
                       </ButtonGroup>
                     </div>

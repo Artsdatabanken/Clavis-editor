@@ -6,12 +6,14 @@ import ClearIcon from "@mui/icons-material/Clear";
 import CheckIcon from '@mui/icons-material/Check';
 import RestoreIcon from "@mui/icons-material/Restore";
 
+import { getImgSrc } from "../utils/helpers";
+
 function getMedia(props) {
   if (props.alternative.media) {
     return (
       <Avatar
         variant="square"
-        src={"https://www.artsdatabanken.no/Media/" + props.alternative.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=128x128"}
+        src={getImgSrc(props.alternative.media["mediaElement"], 128, 128)}
         style={{ flex: "0 0 128px", height: "128px" }}
       />
     );
@@ -29,9 +31,9 @@ function AlternativeContent(props) {
         flex: "1 1 auto",
         cursor:
           media ||
-          props.alternative.description ||
-          props.alternative.descriptionUrl ||
-          props.alternative.descriptionDetails
+            props.alternative.description ||
+            props.alternative.descriptionUrl ||
+            props.alternative.descriptionDetails
             ? "pointer"
             : "default",
       }}

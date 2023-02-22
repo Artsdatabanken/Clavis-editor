@@ -11,9 +11,10 @@ import ItemMetadata from "./ItemMetadata";
 import KeyInfo from "./KeyInfo";
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import { capitalize, getImgSrc } from "../utils/helpers";
 
 function Modal(props) {
-  let { modalObject, setModal } = props;
+  let { modalObject, setModal, language } = props;
 
   let modalContent;
 
@@ -56,8 +57,8 @@ function Modal(props) {
                   component="h2"
                 >
                   {
-                  
-                  c.vernacularName["en"] || c.vernacularName["nb"] || c.vernacularName["nn"] }
+                    c.vernacularName && capitalize(c.vernacularName[language])
+                  }
                 </Typography>
                 <Typography
                   variant="body2"
@@ -72,7 +73,7 @@ function Modal(props) {
                       }}
                       size="small"
                       variant="default"
-                      label={form.vernacularName}
+                      label={capitalize(form.vernacularName)}
                     />
                   )}
                 </Typography>
@@ -136,7 +137,7 @@ function Modal(props) {
           Bestemmelsesnøkkel
         </Typography>
         <Typography variant="body1" component="p">
-          <b>{key.description.no}</b>
+          <b>{key.description}</b>
         </Typography>
         <Typography variant="body2" component="div">
           <ReactMarkdown source={key.descriptionDetails} />
@@ -216,14 +217,7 @@ function Modal(props) {
           {content.media && (
             <div>
               <img
-
-
-// src={"https://www.artsdatabanken.no/Media/" + props.alternative.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=128x128"}
-
-
-                src={
-                    "https://www.artsdatabanken.no/Media/" + content.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=1280x1280"
-                }
+                src={getImgSrc(content.media["mediaElement"], 1280, 1280)}
                 style={{
                   maxHeight: "50vh",
                   maxWidth: "100%",
@@ -231,7 +225,7 @@ function Modal(props) {
                   marginLeft: "auto",
                   marginRight: "auto",
                 }}
-                alt={`Bilde: ${content.title.nb}`}
+                alt={`Bilde: ${content.title[language]}`}
               />
             </div>
           )}
@@ -324,7 +318,7 @@ function Modal(props) {
         {taxon.media && (
           <div>
             <img
-               src={"https://www.artsdatabanken.no/Media/" + taxon.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=1024x1024"}
+              src={getImgSrc(taxon.media["mediaElement"], 1024, 1024)}
               style={{
                 maxHeight: "50vh",
                 maxWidth: "90vw",
@@ -337,9 +331,7 @@ function Modal(props) {
           </div>
         )}
         <Typography variant="h2" style={{ fontSize: "2.5em" }} component="h2">
-          {/* {taxon.vernacularName.charAt(0).toUpperCase() +
-            taxon.vernacularName.slice(1)} */}
-          {taxon.vernacularName["en"] || taxon.vernacularName["nb"] || taxon.vernacularName["nn"]}
+          {!!taxon.vernacularName && capitalize(taxon.vernacularName[language])}
         </Typography>
 
         <Typography
@@ -353,7 +345,7 @@ function Modal(props) {
               style={{ marginLeft: 5 }}
               size="small"
               variant="default"
-              label={form.vernacularName}
+              label={capitalize(form.vernacularName)}
             />
           )}
         </Typography>
@@ -404,7 +396,7 @@ function Modal(props) {
             <Typography variant="overline" component="p">
               Følgende {followUpKeys.length === 1 ? "nøkkel" : "nøkler"} kan
               brukes til å artsbestemme{" "}
-              {taxon.vernacularName["en"] || taxon.vernacularName["nb"] || taxon.vernacularName["nn"] || taxon.scientificName} nærmere:
+              {capitalize(taxon.vernacularName[language]) || taxon.scientificName} nærmere:
             </Typography>
 
             {followUpKeys.map((p) => (

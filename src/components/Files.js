@@ -3,8 +3,11 @@ import { Button, Card, CardContent, Alert } from "@mui/material";
 import moment from "moment";
 import "../App.css";
 import { deepClone } from "../Utils";
+import { useNavigate } from 'react-router-dom';
 
 function Files({ clavis, setClavis }) {
+
+  const navigate = useNavigate();
 
   const downloadKey = () => {
     let export_file = deepClone(clavis);
@@ -30,6 +33,7 @@ function Files({ clavis, setClavis }) {
     var reader = new FileReader();
     reader.onload = onReaderLoad;
     reader.readAsText(e.target.files[0]);
+    navigate("/")
   }
 
 
@@ -43,6 +47,7 @@ function Files({ clavis, setClavis }) {
       <Card className="formCard" >
         <CardContent>
           <p>To load a key from disk, upload it here.</p>
+
           <Alert fullWidth severity="warning">Don't forget to save the current key to your local disk first if you want to keep it!</Alert>
 
           <Button variant="contained" component="label" color="primary">

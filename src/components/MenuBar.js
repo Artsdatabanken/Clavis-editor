@@ -9,6 +9,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import ForestIcon from '@mui/icons-material/Forest';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import RuleIcon from '@mui/icons-material/Rule';
+import BackupTableIcon from '@mui/icons-material/BackupTable';
 // import CollectionsIcon from '@mui/icons-material/Collections';
 // import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import QuizIcon from '@mui/icons-material/Quiz';
@@ -55,6 +56,12 @@ function MenuBar() {
             <RuleIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Statements</ListItemText>
+        </MenuItem>
+        <MenuItem text="Tabular" onClick={() => navigate('/tabular')} >
+          <ListItemIcon>
+            <BackupTableIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Tabular</ListItemText>
         </MenuItem>
         {/* <MenuItem text="Media"  >
           <ListItemIcon>

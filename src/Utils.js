@@ -44,17 +44,27 @@ export const taxonNames = [
   "subspecies"
 ]
 
-export const getImgSrc = (mediaElement) => {
-  if (mediaElement["mediaElement"]["file"]["url"]["externalId"]) {
-    return "https://www.artsdatabanken.no/Media/" + mediaElement["mediaElement"]["file"]["url"]["externalId"] + "?mode=128x128"
+
+export const getImgSrc = (mediaElement, width, height) => {
+  if(!mediaElement) {
+    return ""
   }
-  else if (mediaElement["mediaElement"]["file"]["url"].includes("/")) {
+
+  if (mediaElement["mediaElement"]["file"]["url"]["externalId"]) {
+    return "https://www.artsdatabanken.no/Media/" + mediaElement["mediaElement"]["file"]["url"]["externalId"] + "?mode=" + parseInt(width) + "x" + parseInt(height)
+  }
+  
+  if (mediaElement["mediaElement"]["file"]["url"].includes("/")) {
     return mediaElement["mediaElement"]["file"]["url"]
   }
   return ""
 }
 
 export const getBestString = (ob) => {
+  if(typeof(ob) === "string") {
+    return ob
+  }
+
   return !!ob ? ob.en || ob.nb || ob.nn || "<empty>" : "<empty>"
 }
 
@@ -68,7 +78,7 @@ export const flattenTaxa = (taxa, level = " ") => {
     t["level"] = level
     returning.push(t)
     if (taxon["children"] && taxon["children"].length) {
-      returning = [...returning, ...flattenTaxa(taxon["children"], "-" + level)]
+      returning = [...returning, ...flattenTaxa(taxon["children"], ("│ " + level).replaceAll('│  ', '└─ '))]
     }
   })
   return returning;

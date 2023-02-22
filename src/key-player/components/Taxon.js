@@ -6,15 +6,12 @@ import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import RestoreIcon from "@mui/icons-material/Restore";
 
 import { getRelevantTaxaCount } from "../utils/logic";
-import { capitalize } from "../utils/helpers";
+import { capitalize, getImgSrc} from "../utils/helpers";
 
 function Taxon(props) {
-  // props.taxon.vernacularName =
-  //   props.taxon.vernacularName.charAt(0).toUpperCase() +
-  //   props.taxon.vernacularName.slice(1);
-
-  const { vernacularName, scientificName, id, isResult } = props.taxon;
+  const { vernacularName, scientificName, id, label} = props.taxon;
   let media = props.taxon.media;
+  let language = props.language
 
   let children = [];
   if (props.taxon.children) {
@@ -26,7 +23,7 @@ function Taxon(props) {
   }
 
   // If this taxon has no media, but is a result with children, set the media element to that of the first child
-  if (!media && isResult && children.length) {
+  if (!media && children.length) {
     let child = children.find((child) => child.media);
     if (child) {
       media = child.media;
@@ -61,16 +58,35 @@ function Taxon(props) {
       style={{ fontSize: "1.12em", lineHeight: ".5em" }}
       gutterBottom
     >
-      {capitalize(vernacularName["en"] || vernacularName["nb"] || vernacularName["nn"] || scientificName)}{" "}
-      {props.taxon.children &&
-        !props.taxon.isResult &&
+      {
+        !!vernacularName && !!vernacularName[language] ? 
+          capitalize(vernacularName[language])
+        : 
+        (
+          !!scientificName ?
+            <i>{scientificName}</i>
+          :
+          (
+            !!label ? 
+            label[language]
+            :
+              " "
+            )
+        )
+      }
+
+      {props.taxon.children && props.taxon.children.length &&
+        !props.taxon.children[0].label &&
         "(" + getRelevantTaxaCount(props.taxon) + ")"}
     </Typography>
   );
 
   const scientificNameHeader = (
     <Typography variant="body2" gutterBottom style={{ fontSize: "0.8em" }}>
-      <i>{scientificName}</i>
+      {
+        ((!!vernacularName && !!vernacularName[language]) || !!label) &&
+        <i>{scientificName}</i>
+      }
     </Typography>
   );
 
@@ -85,7 +101,7 @@ function Taxon(props) {
         {props.taxon.media && (
           <Avatar
             variant="square"
-            src={"https://www.artsdatabanken.no/Media/" + props.taxon.media["mediaElement"]["file"]["url"]["externalId"] + "?mode=128x128"}
+            src={getImgSrc(props.taxon.media["mediaElement"], 55, 55)}
             style={{ width: "55px", height: "55px" }}
             onClick={props.setModal.bind(this, { taxon: props.taxon })}
           />
@@ -101,17 +117,14 @@ function Taxon(props) {
         <div style={{ flex: "0" }}>{getButton()}</div>
       </div>
       <div style={{ paddingLeft: "50px" }}>
-        {props.taxon.isResult &&
-          children.length === 1 &&
-          (children[0].vernacularName["en"] || children[0].vernacularName["nb"] || children[0].vernacularName["nn"]) && (
+        {children.length === 1 &&
+          (children[0].label) && (
             <Chip
               style={{ marginLeft: 15, marginBottom: 15, marginTop: -5 }}
               size="small"
               variant="default"
               label={
-                children[0].vernacularName["en"] || children[0].vernacularName["nb"] || children[0].vernacularName["nn"]
-                // children[0].vernacularName.charAt(0).toUpperCase() +
-                // children[0].vernacularName.slice(1)
+                capitalize(children[0].label)
               }
             />
           )}

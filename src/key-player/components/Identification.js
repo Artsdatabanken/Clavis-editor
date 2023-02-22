@@ -186,8 +186,6 @@ class Identification extends Component {
           .filter((sm) => sm.value === state.id)
           .map((sm) => sm.taxon);
 
-
-
         const addTaxa = [
           ...new Set(
             taxaWithCharacter.filter(
@@ -195,8 +193,6 @@ class Identification extends Component {
             )
           ),
         ];
-
-        console.log(addTaxa)
 
         for (let taxon of addTaxa) {
           addStatements.push({
@@ -218,6 +214,11 @@ class Identification extends Component {
     myData.taxaCount = myData.relevantTaxaCount;
 
     // myData.characters = getCharacterRelevances(myData);
+
+    if(Array.isArray(myData.language) && myData.language.length === 1) {
+      myData.language = myData.language[0]
+    }
+
     this.setState(myData);
     console.log(myData)
   }
@@ -285,7 +286,7 @@ class Identification extends Component {
     return (
       <div style={{ display: "flex", flexGrow: 1 }}>
 
-        <Modal modalObject={this.state.modalObject} setModal={this.setModal} />
+        <Modal modalObject={this.state.modalObject} setModal={this.setModal} language={this.state.language} />
 
         <AppBar
           position="absolute"
@@ -328,7 +329,14 @@ class Identification extends Component {
           </Tabs>
         </AppBar>
 
-        {this.state.taxa.length && (
+        {Array.isArray(this.state.language) &&
+         <main style={{ width: "100%", paddingTop: 65, flexGrow: 1 }}>
+          Choose language
+          </main>
+        }
+
+
+        {!Array.isArray(this.state.language) && this.state.taxa.length && (
           <main style={{ width: "100%", paddingTop: 45, flexGrow: 1 }}>
             <TabPanel value={value} index={0}>
               {answered.length ? (
@@ -387,6 +395,7 @@ class Identification extends Component {
                     setModal={this.setModal}
                     toggleDismissTaxon={this.toggleDismissTaxon}
                     standalone={true}
+                    language={this.state.language}
                   />
                 </div>
               )}
@@ -423,6 +432,7 @@ class Identification extends Component {
                         media={this.state.mediaElements}
                         key={taxon.id}
                         filter="relevant"
+                        language={this.state.language}
                       />
                     ))}
                 </TreeItem>
@@ -445,6 +455,7 @@ class Identification extends Component {
                         taxon={taxon}
                         key={taxon.id}
                         filter="irrelevant"
+                        language={this.state.language}
                       />
                     ))}
                 </TreeItem>
@@ -492,6 +503,7 @@ class Identification extends Component {
                         media={this.state.mediaElements}
                         key={taxon.id}
                         filter="relevant"
+                        language={this.state.language}
                       />
                     ))}
                 </TreeItem>
@@ -514,6 +526,7 @@ class Identification extends Component {
                         media={this.state.mediaElements}
                         key={taxon.id}
                         filter="irrelevant"
+                        language={this.state.language}
                       />
                     ))}
                 </TreeItem>

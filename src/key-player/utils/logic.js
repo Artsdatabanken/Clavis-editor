@@ -26,10 +26,12 @@ const setBranchRelevances = (taxon, alreadyIrrelevant) => {
     taxon.isRelevant =
       taxon.isRelevant && taxon.children.some((child) => child.isRelevant);
 
-    // a taxon becomes irrelevant if it is a result with no relevant children (morphs), or not a result with any irrelevant children
+    // a taxon becomes irrelevant if it is an endPoint with no relevant children, or not an endPoint with any irrelevant children
+    // TODO: this will not work correctly, given the new format with isEndPoint, which can have an entire tree below it
+
     taxon.isIrrelevant =
       taxon.isIrrelevant ||
-      (taxon.isResult
+      (taxon.isEndPoint
         ? !taxon.children.some((child) => child.isRelevant)
         : taxon.children.some((child) => child.isIrrelevant));
   }
@@ -301,7 +303,7 @@ export const filterTaxaByIds = (taxa, ids) => {
 
 const dismissAllExcept = (taxa, taxaToKeep) => {
   return taxa.map((taxon) => {
-    if (taxon.isResult || !taxon.children) {
+    if (taxon.isEndPoint || !taxon.children) {
       if (!taxaToKeep.includes(taxon.scientificName)) {
         taxon.dismissed = true;
       }
@@ -313,7 +315,7 @@ const dismissAllExcept = (taxa, taxaToKeep) => {
 };
 
 const containsTaxon = (taxon, scientificNames) => {
-  if (taxon.isResult || !taxon.children) {
+  if (taxon.isEndPoint || !taxon.children) {
     return scientificNames.includes(taxon.scientificName);
   } else if (taxon.children) {
     return taxon.children.some((child) =>
@@ -341,7 +343,7 @@ const getResultTaxa = (taxon) => {
   }
 
   if (taxon.isRelevant) {
-    if (taxon.children && !taxon.isResult) {
+    if (taxon.children && !taxon.isEndPoint) {
       return getResultTaxa(taxon.children);
     } else {
       return taxon;
@@ -362,7 +364,7 @@ export const getRelevantTaxaCount = (taxa) => {
     return 0;
   }
 
-  if (taxa.isResult || !taxa.children) {
+  if (taxa.isEndPoint || !taxa.children) {
     return 1;
   }
 

@@ -4,7 +4,6 @@ import {TreeItem} from '@mui/lab';
 import Taxon from "./Taxon";
 
 function TaxonTreeItem(props) {
-  const { isResult } = props.taxon;
   let media = props.taxon.media;
 
   let children = [];
@@ -17,7 +16,7 @@ function TaxonTreeItem(props) {
   }
 
   // If this taxon has no media, but is a result with children, set the media element to that of the first child
-  if (!media && isResult && children.length) {
+  if (!media && children.length) {
     let child = children.find((child) => child.media);
     if (child) {
       media = child.media;
@@ -42,10 +41,11 @@ function TaxonTreeItem(props) {
           setModal={props.setModal}
           filter={props.filter}
           media={props.media}
+          language={props.language}
         />
       }
     >
-      {!props.taxon.isResult
+      {!!children.length
         ? children.map((child) => (
             <TaxonTreeItem
               toggleDismissTaxon={props.toggleDismissTaxon}
@@ -54,6 +54,7 @@ function TaxonTreeItem(props) {
               media={props.media}
               key={child.id}
               filter={props.filter}
+              language={props.language}
             />
           ))
         : ""}

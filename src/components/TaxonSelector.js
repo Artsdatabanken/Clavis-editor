@@ -123,8 +123,6 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
 
       let result = [...sci.data, ...artskart.data]
 
-      console.log(result)
-
       setSuggestions([...new Set(result.map(s => {
         if (!!s.scientificName) {
           return result.find(x => x.ScientificName === s.scientificName) || s
@@ -162,7 +160,7 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
     axios
       .get(
         "https://www.artsdatabanken.no/api/Taxon/ScientificName/" +
-        v.ScientificNameId
+        (v.scientificNameID || v.ScientificNameId)
       )
       .then((res) => {
         setSelectedLevel(res.data.taxonRank);
