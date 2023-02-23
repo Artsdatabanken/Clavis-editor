@@ -12,7 +12,7 @@ import {
 
 } from "@mui/material";
 
-import { search, deepClone, flattenTaxa, getBestString } from "../Utils"
+import { search, deepClone, flattenTaxa, getBestString, changeStatement } from "../Utils"
 
 
 import Statement from "./Statement";
@@ -70,8 +70,21 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
 
 
   const setStatementValue = (field, statement, value) => {
-    statement[field] = value
-    replaceItem(statement)
+    if(field === "frequency") {
+      const character = characters.find(c => c.id === statement.character)
+      replaceItem(changeStatement(statements, statement.id, value, character))
+    }
+    else {
+      statement[field] = value
+      replaceItem(statement)
+    }
+
+
+
+    
+
+
+
   }
 
   const addObjects = (items) => {
@@ -144,7 +157,7 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
 
       <div>
         {pool(filtered).map(function (statement, index) {
-          return <Statement statement={statement} characters={characters} taxa={taxa} languages={languages} setStatementValue={setStatementValue} setEditing={setEditing} editing={editing} deleteItem={deleteStatement} replaceItem={replaceItem} index={index} />
+          return <Statement key={index} statement={statement} characters={characters} taxa={taxa} languages={languages} setStatementValue={setStatementValue} setEditing={setEditing} editing={editing} deleteItem={deleteStatement} replaceItem={replaceItem} index={index} />
         })}
       </div>
 

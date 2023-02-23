@@ -171,7 +171,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
                   {getEditableItems({
                     "item": character,
                     "field": "descriptionUrl",
-                    "placeholder": "Provide and ID",
+                    "placeholder": "Provide an ID",
                     "languages": languages,
                     "callback": setValue,
                     "editingField": editingField,

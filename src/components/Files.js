@@ -48,7 +48,7 @@ function Files({ clavis, setClavis }) {
         <CardContent>
           <p>To load a key from disk, upload it here.</p>
 
-          <Alert fullWidth severity="warning">Don't forget to save the current key to your local disk first if you want to keep it!</Alert>
+          <Alert severity="warning">Don't forget to save the current key to your local disk first if you want to keep it!</Alert>
 
           <Button variant="contained" component="label" color="primary">
             Load key

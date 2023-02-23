@@ -112,7 +112,7 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
                         <FormLabel component="legend">Languages</FormLabel>
 
                         {clavis["language"].map(l =>
-                            <h4 style={{ "margin": "0.5em" }}>
+                            <h4 style={{ "margin": "0.5em" }} key={l}>
                                 <ChatIcon fontSize="inherit" /> {languageNames[l]}
                                 <IconButton aria-label="delete" color={removing === l ? "error" : "default"}
                                     onClick={() => {
@@ -143,7 +143,7 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
                                                 return !clavis["language"].includes(key)
                                             })
                                             .map(([key, value]) =>
-                                                <MenuItem value={key}>{value}</MenuItem>
+                                                <MenuItem value={key} key={key}>{value}</MenuItem>
 
                                             )
                                     }
@@ -280,7 +280,7 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
                         <FormLabel component="legend">Description ID</FormLabel>
                         <FormGroup>
                             {clavis["language"].map(function (l) {
-                                return getLanguageInput("descriptionUrl", "Provide and ID", l)
+                                return getLanguageInput("descriptionUrl", "Provide an ID", l)
                             })}
                             {
                                 !clavis["language"].length &&

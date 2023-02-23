@@ -63,7 +63,7 @@ function Statement({ statement, characters, taxa, setStatementValue, deleteItem,
                 <div style={{ flexGrow: "1" }}>
 
                   {statement.map(fact =>
-                    <div style={{ flexGrow: "1" }} className="sideBySide">
+                    <div key={fact.id} style={{ flexGrow: "1" }} className="sideBySide">
                       <div>{getBestString(character["states"].find(x => x.id === fact.value)["title"])}</div>
                       <ButtonGroup size="small" aria-label="outlined primary button group">
                         <Button variant={fact.frequency === 1 ? "contained" : "outlined"} color="success" onClick={e => setStatementValue("frequency", fact, 1)}>Always</Button>

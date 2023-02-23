@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 import Card from '@mui/material/Card';
-import { flattenTaxa, getBestString, deepClone } from "../Utils"
+import { flattenTaxa, getBestString, deepClone, changeStatement } from "../Utils"
 import {
     Dialog, DialogTitle, DialogContent, DialogContentText,
     DialogActions, Button, ButtonGroup
@@ -86,34 +86,36 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
     }
 
     const setStatementValue = (field, fact, value) => {
-        setCurrentStatements(currentStatements.map(statement => {
-            if (fact.id === statement.id) {
-                fact[field] = value
-                return fact
-            }
-            else if (field === "frequency" && value === 1 && (currentCharacter.type !== "exclusive" || currentCharacter.type)) {
-                statement["frequency"] = 0
-            }
-            else if (field === "frequency" && value > 0 && (currentCharacter.type !== "exclusive" || currentCharacter.type) && statement["frequency"] === 1) {
-                statement["frequency"] = .5
-            }
+        setCurrentStatements(changeStatement(currentStatements, fact.id, value, currentCharacter))
 
-            return statement
-        }))
+        // setCurrentStatements(currentStatements.map(statement => {
+        //     if (fact.id === statement.id) {
+        //         fact[field] = value
+        //         return fact
+        //     }
+        //     else if (field === "frequency" && value === 1 && (currentCharacter.type !== "exclusive" || currentCharacter.type)) {
+        //         statement["frequency"] = 0
+        //     }
+        //     else if (field === "frequency" && value > 0 && (currentCharacter.type !== "exclusive" || currentCharacter.type) && statement["frequency"] === 1) {
+        //         statement["frequency"] = .5
+        //     }
+
+        //     return statement
+        // }))
     }
 
     const TaxonHeaders = ({ taxa }) => (
         <>
             {taxa.map(taxon =>
-                <td onClick={() => highlightTaxon(taxon)} style={{ "vertical-align": "bottom", "text-align": "center" }}>
+                <td key={taxon.id} onClick={() => highlightTaxon(taxon)} style={{ "verticalAlign": "bottom", "textAlign": "center" }}>
                     <span style={{
-                        "-ms-writing-mode": "tb-rl",
-                        "-webkit-writing-mode": "vertical-rl",
-                        "writing-mode": "vertical-rl",
+                        "msWritingMode": "tb-rl",
+                        "WebkitWritingMode": "vertical-rl",
+                        "writingMode": "vertical-rl",
                         "transform": "rotate(180deg)",
-                        "white-space": "nowrap",
+                        "whiteSpace": "nowrap",
                         "width": "16pt",
-                        "background-color": (highlightedTaxon === taxon.id ? "yellow" : "white")
+                        "backgroundColor": (highlightedTaxon === taxon.id ? "yellow" : "white")
                     }}
 
                     >{taxon.level}{taxon.scientificName || taxon.label[language]}</span></td>
@@ -129,9 +131,9 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
 
         if (typeof (lastResult) !== "undefined" && lastLevel.length < taxon.level.length) {
             return {
-                "html": <td style={{
-                    "cursor": "not-allowed", "border": "1px solid grey", "color": "lightgrey", "text-align": "center",
-                    "background-color": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id)))**2 + ")"
+                "html": <td key={taxon.id + state.id} style={{
+                    "cursor": "not-allowed", "border": "1px solid grey", "color": "lightgrey", "textAlign": "center",
+                    "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
                 }}>{lastResult}</td>,
                 "lastLevel": lastLevel,
                 "lastResult": lastResult
@@ -140,9 +142,9 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
 
         if (!!thisStatement) {
             return {
-                "html": <td onClick={() => openStatements(character, taxon)} style={{
-                    "cursor": "pointer", "border": "1px solid grey", "text-align": "center",
-                    "background-color": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id)))**2 + ")"
+                "html": <td key={taxon.id + state.id} onClick={() => openStatements(character, taxon)} style={{
+                    "cursor": "pointer", "border": "1px solid grey", "textAlign": "center",
+                    "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
                 }}>{thisStatement.frequency}</td>,
                 "lastLevel": taxon.level,
                 "lastResult": thisStatement.frequency
@@ -151,9 +153,9 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
 
         if ((!character.type || character.type === "exclusive") && relevant.length) {
             return {
-                "html": <td onClick={() => openStatements(character, taxon)} style={{
-                    "cursor": "pointer", "border": "1px solid grey", "text-align": "center",
-                    "background-color": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id)))**2 + ")"
+                "html": <td key={taxon.id + state.id} onClick={() => openStatements(character, taxon)} style={{
+                    "cursor": "pointer", "border": "1px solid grey", "textAlign": "center",
+                    "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
                 }}>0</td>,
                 "lastLevel": taxon.level,
                 "lastResult": 0
@@ -161,9 +163,9 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
         }
 
         return {
-            "html": <td onClick={() => openStatements(character, taxon)} style={{
-                "cursor": "pointer", "border": "1px solid grey", "text-align": "center",
-                "background-color": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id)))**2 + ")"
+            "html": <td key={taxon.id + state.id} onClick={() => openStatements(character, taxon)} style={{
+                "cursor": "pointer", "border": "1px solid grey", "textAlign": "center",
+                "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
             }}></td>,
             "lastLevel": taxon.level,
             "lastResult": undefined
@@ -188,8 +190,8 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
     const States = ({ character }) => (
         <>
             {character.states.map(state =>
-                <tr>
-                    <td onClick={() => highlightCharacter(character)} style={{ "padding-left": "25px", "border-bottom": "1px solid black", "background-color": (highlightedCharacter === character.id ? "yellow" : "white") }}>{getBestString(state.title)}</td>
+                <tr key={state.id}>
+                    <td onClick={() => highlightCharacter(character)} style={{ "paddingLeft": "25px", "borderBottom": "1px solid black", "backgroundColor": (highlightedCharacter === character.id ? "yellow" : "white") }}>{getBestString(state.title)}</td>
                     <Statements character={character} state={state} />
                 </tr>
             )}
@@ -199,22 +201,22 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
     const Characters = ({ characters }) => (
         <>
             {characters.map(character =>
-                <>
+                <React.Fragment key={character.id}>
                     <tr>
-                        <td onClick={() => highlightCharacter(character)} style={{ "border-bottom": "1px solid black", "background-color": (highlightedCharacter === character.id ? "yellow" : "white") }}><span style={{ "font-weight": "bold" }}>{character.title.en || character.title.nb || character.title.nn}</span></td>
+                        <td onClick={() => highlightCharacter(character)} style={{ "borderBottom": "1px solid black", "backgroundColor": (highlightedCharacter === character.id ? "yellow" : "white") }}><span style={{ "fontWeight": "bold" }}>{character.title.en || character.title.nb || character.title.nn}</span></td>
                     </tr>
                     <States character={character} />
-                </>
+                </React.Fragment>
             )}
         </>);
 
-    const Tabular = () => (<table style={{ "table-layout": "fixed", "font-size": "12pt", "border-collapse": "collapse" }}>
+    const Tabular = () => (<table style={{ "tableLayout": "fixed", "fontSize": "12pt", "borderCollapse": "collapse" }}><tbody>
         <tr>
             <td style={{ "width": "200px" }}><div style={{ "width": "400px" }} /></td><TaxonHeaders taxa={taxaFlattened} />
         </tr>
         <Characters characters={clavis.characters} />
 
-
+    </tbody>
     </table>);
 
     return (
@@ -244,7 +246,7 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
                         <div style={{ flexGrow: "1" }}>
 
                             {currentStatements.map(fact =>
-                                <div style={{ flexGrow: "1" }} className="sideBySide">
+                                <div key={fact.id} style={{ flexGrow: "1" }} className="sideBySide">
                                     <div>{getBestString(currentCharacter["states"].find(x => x.id === fact.value)["title"])}</div>
                                     <ButtonGroup size="small" aria-label="outlined primary button group">
                                         <Button variant={fact.frequency === 1 ? "contained" : "outlined"} color="success" onClick={e => setStatementValue("frequency", fact, 1)}>Always</Button>
