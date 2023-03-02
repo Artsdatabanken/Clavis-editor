@@ -212,10 +212,10 @@ export const changeStatement = (statements, statetmentId, frequency, character) 
     return statements
   }
   // If the new frequency is 0, and there are 2 or more others but they are all zero, delete those others
-  else if(frequency === 0 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency !== 0)).length === 0) {
+  else if (frequency === 0 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency !== 0)).length === 0) {
 
     return statements.map(s => {
-      if(s.character === character.id && s.taxon === taxonId && s.id !== statetmentId) {
+      if (s.character === character.id && s.taxon === taxonId && s.id !== statetmentId) {
         s.frequency = undefined
       }
       return s
@@ -233,26 +233,26 @@ export const changeStatement = (statements, statetmentId, frequency, character) 
     }
     return statements
   }
-  // If the frequency is >0 and <1, there can be no siblings with frequency 1, so remove those
-  else if(frequency > 0 && frequency < 1 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 1)).length > 0) {
+  // If the frequency is >0 and <1, there can be no siblings with frequency 1, so make those the reverse
+  else if (frequency > 0 && frequency < 1 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 1)).length > 0) {
     return statements.map(s => {
-      if((s.character === character.id && s.taxon === taxonId && s.frequency === 1)) {
-        s.frequency = undefined
+      if ((s.character === character.id && s.taxon === taxonId && s.frequency === 1)) {
+        s.frequency = 1.0 - frequency
       }
       return s
     })
   }
-  // If the frequency is >0 and <1, not all others can be 0, so delete them if this is the case
-  else if(frequency > 0 && frequency < 1 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 0)).length === character.states.length-1) {
+  // If the frequency is >0 and <1, not all others can be 0, so nullify them if this is the case
+  else if (frequency > 0 && frequency < 1 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 0)).length === character.states.length - 1) {
     return statements.map(s => {
-      if((s.character === character.id && s.taxon === taxonId && s.frequency === 0)) {
+      if ((s.character === character.id && s.taxon === taxonId && s.frequency === 0)) {
         s.frequency = undefined
       }
       return s
     })
   }
   // If the frequenct is 0 and all but one siblings are also 0, the last one has to be 1
-  else if(frequency === 0 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 0)).length === character.states.length-1) {
+  else if (frequency === 0 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 0)).length === character.states.length - 1) {
     // for loop is more efficient as we want to break when finding the right one
     for (let index = 0; index < statements.length; index++) {
       const statement = statements[index];
@@ -264,10 +264,7 @@ export const changeStatement = (statements, statetmentId, frequency, character) 
     return statements
   }
 
-
   // Otherwise, it is a special case somehow
   console.warn("No logic found for sibling statements")
   return statements
-
-
 }

@@ -70,14 +70,14 @@ function Taxon(props) {
             !!label ? 
             label[language]
             :
-              " "
+              ""
             )
         )
       }
 
-      {props.taxon.children && props.taxon.children.length &&
+      {!!props.taxon.children && !!props.taxon.children.length &&
         !props.taxon.children[0].label &&
-        "(" + getRelevantTaxaCount(props.taxon) + ")"}
+        " (" + getRelevantTaxaCount(props.taxon) + ")"}
     </Typography>
   );
 

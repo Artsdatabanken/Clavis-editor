@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { Tabs, Tab, AppBar, Typography, Box, Button, Card} from '@mui/material';
+import { Tabs, Tab, AppBar, Typography, Box, Button, Card } from '@mui/material';
 import { TreeView, TreeItem } from '@mui/lab';
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -77,7 +77,21 @@ class Identification extends Component {
     this.setState(giveAnswers(this.state, [[id, undefined]]));
   };
 
+
+  makeTaxaRelevant = (taxa) => {
+    return taxa.map(t => {
+      t.conflicts = []
+      t.isRelevant = true
+      t.isIrrelevant = false
+      if (t.children && t.children.length > 0) {
+        t.children = this.makeTaxaRelevant(t.children)
+      }
+      return t
+    })
+  };
+
   resetAnswers = () => {
+
     let answers = this.state.characters.reduce(
       (arr, elem) =>
         arr.concat(
@@ -215,12 +229,11 @@ class Identification extends Component {
 
     // myData.characters = getCharacterRelevances(myData);
 
-    if(Array.isArray(myData.language) && myData.language.length === 1) {
+    if (Array.isArray(myData.language) && myData.language.length === 1) {
       myData.language = myData.language[0]
     }
 
     this.setState(myData);
-    console.log(myData)
   }
 
 
@@ -330,8 +343,8 @@ class Identification extends Component {
         </AppBar>
 
         {Array.isArray(this.state.language) &&
-         <main style={{ width: "100%", paddingTop: 65, flexGrow: 1 }}>
-          Choose language
+          <main style={{ width: "100%", paddingTop: 65, flexGrow: 1 }}>
+            Choose language
           </main>
         }
 
@@ -469,7 +482,7 @@ class Identification extends Component {
           wideScreen &&
 
           <Card
-            style={{ marginTop: 50, minWidth: 400, zIndex: 0}}
+            style={{ marginTop: 50, minWidth: 400, zIndex: 0 }}
           >
             <Box
               style={{

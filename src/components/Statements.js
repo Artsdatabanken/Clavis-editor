@@ -78,13 +78,6 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
       statement[field] = value
       replaceItem(statement)
     }
-
-
-
-    
-
-
-
   }
 
   const addObjects = (items) => {

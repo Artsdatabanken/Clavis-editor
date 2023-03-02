@@ -57,7 +57,13 @@ function Modal(props) {
                   component="h2"
                 >
                   {
-                    c.vernacularName && capitalize(c.vernacularName[language])
+                    c.vernacularName && c.vernacularName[language] && capitalize(c.vernacularName[language])
+                  }
+                  {
+                    !c.vernacularName && c.label && c.label[language] && capitalize(c.label[language])
+                  }
+                  {
+                    !c.vernacularName && !c.label && c.scientificName && (<i>{c.scientificName}</i>)
                   }
                 </Typography>
                 <Typography
@@ -131,16 +137,16 @@ function Modal(props) {
     modalContent = (
       <div style={{ margin: "25px" }}>
         <Typography variant="h3" component="h1">
-          {key.title.no}
+          {key.title[language]}
         </Typography>
         <Typography variant="overline" component="span">
           Bestemmelsesnøkkel
         </Typography>
         <Typography variant="body1" component="p">
-          <b>{key.description}</b>
+          <b>{key.description ? key.description[language] : ""}</b>
         </Typography>
         <Typography variant="body2" component="div">
-          <ReactMarkdown source={key.descriptionDetails} />
+          <ReactMarkdown source={key.descriptionDetails ? key.descriptionDetails[language] : ""} />
         </Typography>
 
         {!!taxonSelection.length && (
@@ -192,7 +198,7 @@ function Modal(props) {
             </Typography>
 
             {parentKeys.map((p) => (
-              <KeyInfo key={p.id} keyItem={p} />
+              <KeyInfo key={p.id} keyItem={p} language={language} />
             ))}
           </div>
         )}
@@ -231,7 +237,7 @@ function Modal(props) {
           )}
 
           <Typography variant="h2" style={{ fontSize: "1.7em" }} component="h2">
-            {content.title.no}
+            {content.title[language]}
           </Typography>
 
           <Typography
@@ -239,7 +245,7 @@ function Modal(props) {
             component="p"
             style={{ fontSize: "1.4em" }}
           >
-            <b>{content.description}</b>
+            <b>{content.description ? content.description[language] : ""}</b>
           </Typography>
 
           <Typography
@@ -400,7 +406,7 @@ function Modal(props) {
             </Typography>
 
             {followUpKeys.map((p) => (
-              <KeyInfo key={p.id} keyItem={p} />
+              <KeyInfo key={p.id} keyItem={p} language={language} />
             ))}
           </div>
         )}

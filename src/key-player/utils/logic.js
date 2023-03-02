@@ -15,10 +15,11 @@ const setBranchRelevances = (taxon, alreadyIrrelevant) => {
   // by default, a taxon is relevant if it is not the child of an irrelevant taxon, has not been dismissed and does not have any conflicts
   taxon.isRelevant =
     !alreadyIrrelevant && !taxon.dismissed && !taxon.conflicts.length;
+
   // by default, irrelevance is the opposite of relevance (but this may change if it has irrelevant children)
   taxon.isIrrelevant = !taxon.isRelevant;
 
-  if (taxon.children) {
+  if (taxon.children && taxon.children.length) {
     // if it has children, set the (ir)relevances for those
     taxon.children = setTaxonRelevances(taxon.children, taxon.isIrrelevant);
 
@@ -35,6 +36,7 @@ const setBranchRelevances = (taxon, alreadyIrrelevant) => {
         ? !taxon.children.some((child) => child.isRelevant)
         : taxon.children.some((child) => child.isIrrelevant));
   }
+
   return taxon;
 };
 
@@ -110,17 +112,21 @@ const setTaxaConflicts = (taxa, state, relevantStatements) => {
       taxon.conflicts = [...taxon.conflicts, state.id];
     } else if (state.answerIs === undefined) {
       taxon.conflicts = taxon.conflicts.filter(
-        (conflict) => conflict !== state.id
+        (conflict) => {
+          return conflict !== state.id
+        }
       );
+
     }
 
-    if (taxon.children) {
+    if (taxon.children && taxon.children.length) {
       taxon.children = setTaxaConflicts(
         taxon.children,
         state,
         relevantStatements
       );
     }
+
     return taxon;
   });
 };
@@ -153,6 +159,11 @@ const setFact = (stateObject, stateId, value) => {
     return character;
   });
 
+
+
+
+
+
   let relevantAlternative;
 
   for (let c of stateObject.characters) {
@@ -179,6 +190,7 @@ const setFact = (stateObject, stateId, value) => {
 };
 
 const answer = (stateObject, stateId, value) => {
+
   // mark it as (un)answered
   stateObject.characters.map((character) => {
     character.states.map((state) => {
@@ -190,13 +202,17 @@ const answer = (stateObject, stateId, value) => {
     return character;
   });
 
+
   // set the value of the alternative, the answered state of the character, and add/remove conflicts
   stateObject = setFact(stateObject, stateId, value);
+
+
 
   // if removing answer, for every earlier inferrence, undo with setFact
   if (value === undefined) {
     stateObject = removeInferrences(stateObject);
   }
+
 
   // moving to giveAnswers
   // stateObject = inferAlternatives(stateObject);
@@ -343,7 +359,7 @@ const getResultTaxa = (taxon) => {
   }
 
   if (taxon.isRelevant) {
-    if (taxon.children && !taxon.isEndPoint) {
+    if (taxon.children && taxon.children.length && !taxon.isEndPoint) {
       return getResultTaxa(taxon.children);
     } else {
       return taxon;
@@ -354,6 +370,7 @@ const getResultTaxa = (taxon) => {
 };
 
 export const getRelevantTaxaCount = (taxa) => {
+
   if (Array.isArray(taxa)) {
     return taxa
       .map((t) => getRelevantTaxaCount(t))
@@ -361,10 +378,10 @@ export const getRelevantTaxaCount = (taxa) => {
   }
 
   if (!taxa.isRelevant) {
-    return 0;
+    return 0;    
   }
 
-  if (taxa.isEndPoint || !taxa.children) {
+  if (taxa.isEndPoint || !taxa.children || !taxa.children.length) {
     return 1;
   }
 
@@ -381,6 +398,7 @@ export const giveAnswers = (stateObject, answers) => {
   });
 
   stateObject = inferAlternatives(stateObject);
+
   stateObject.relevantTaxaCount = getRelevantTaxaCount(stateObject.taxa);
 
   // Show the results if there is one taxon left, or no questions left to ask
@@ -396,7 +414,6 @@ export const giveAnswers = (stateObject, answers) => {
     stateObject.modalObject.keys = stateObject.keys;
     stateObject.modalObject.key = stateObject.id;
   }
-
   return stateObject;
 };
 
@@ -504,9 +521,12 @@ export const toggleTaxonDismissed = (stateObject, taxonId) => {
 
 // deducts the answers for unanswered alternatives, and marks the character as relevant or irrelevant
 export const inferAlternatives = (stateObject) => {
+
   let relevantStatements = stateObject.statements.filter((sm) =>
     isRelevantTaxon(sm.taxon, stateObject.taxa)
   );
+
+
 
   // set negatives
   // if a sibling is true, it is negative
@@ -514,12 +534,13 @@ export const inferAlternatives = (stateObject) => {
   stateObject.characters.forEach((character) => {
     character.states
       .filter(
-        (state) =>
-          state.answerIs === undefined &&
-          (character.states.some((sibling) => sibling.answerIs) ||
-            !relevantStatements.some(
-              (sm) => sm.value === state.id && sm.frequency !== 0
-            ))
+        (state) => {
+          return state.answerIs === undefined &&
+            (character.states.some((sibling) => sibling.answerIs) ||
+              !relevantStatements.some(
+                (sm) => sm.value === state.id && sm.frequency !== 0
+              ))
+        }
       )
       .forEach((state) => {
         stateObject = setFact(stateObject, state.id, false);
@@ -532,10 +553,6 @@ export const inferAlternatives = (stateObject) => {
   stateObject.characters
     .filter((c) => !c.isAnswered)
     .forEach((character) => {
-
-      console.log(JSON.parse(JSON.stringify(character.states)))
-      console.log(JSON.parse(JSON.stringify(relevantStatements)))
-
       character.states
         .filter(
           (state) =>
@@ -548,15 +565,6 @@ export const inferAlternatives = (stateObject) => {
               ))
         )
         .forEach((state) => {
-          console.log(JSON.parse(JSON.stringify(state)))
-          console.log("undefined:")
-          console.log(JSON.parse(JSON.stringify(character.states.filter(
-            (sibling) => sibling.answerIs === undefined
-          ))).length)
-          console.log("relevane:")
-          console.log(relevantStatements.some(
-            (sm) => sm.value === state.id && sm.frequency !== 1
-          ))
           stateObject = setFact(stateObject, state.id, true);
         });
     });

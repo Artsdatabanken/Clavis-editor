@@ -5,6 +5,7 @@ import { Button, Card, CardContent, CardMedia, Typography } from '@mui/material'
 
 function KeyInfo(props) {
   let key = props.keyItem;
+  let language = props.language;
 
   function KeyContext() {
     if (props.subject) {
@@ -49,10 +50,10 @@ function KeyInfo(props) {
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div style={{ flex: "1 1 auto" }}>
               <Typography gutterBottom variant="h5" component="h2">
-                {key.title}
+                {key.title[language]}
               </Typography>
               <Typography variant="body2" component="p">
-                {key.description}
+                {key.description[language]}
               </Typography>
 
               {props.lowerTaxon && (
@@ -83,10 +84,10 @@ function KeyInfo(props) {
             {key.mediaElement && (
               <CardMedia
                 component="img"
-                alt={key.title}
+                alt={key.title[language]}
                 height="140"
                 image={key.mediaElement.find((m) => m.height >= 150).url}
-                title={key.title}
+                title={key.title[language]}
                 style={{ width: 150, height: 150, flex: "0 0 auto" }}
               />
             )}
