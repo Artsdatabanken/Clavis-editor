@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { MenuList, MenuItem, ListItemText, ListItemIcon, Divider, Drawer, CardContent } from '@mui/material';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import InfoIcon from '@mui/icons-material/Info';
+import LanguageIcon from '@mui/icons-material/Language';
 import ForestIcon from '@mui/icons-material/Forest';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import RuleIcon from '@mui/icons-material/Rule';
@@ -14,7 +15,7 @@ import BackupTableIcon from '@mui/icons-material/BackupTable';
 // import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import QuizIcon from '@mui/icons-material/Quiz';
 import DataObjectIcon from '@mui/icons-material/DataObject';
-
+import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
 
 
 function MenuBar() {
@@ -63,6 +64,12 @@ function MenuBar() {
           </ListItemIcon>
           <ListItemText>Tabular</ListItemText>
         </MenuItem>
+        <MenuItem text="Translations" onClick={() => navigate('/translations')} >
+          <ListItemIcon>
+            <LanguageIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Translations</ListItemText>
+        </MenuItem>
         {/* <MenuItem text="Media"  >
           <ListItemIcon>
             <CollectionsIcon fontSize="small" />
@@ -82,6 +89,16 @@ function MenuBar() {
           </ListItemIcon>
           <ListItemText>Test the key</ListItemText>
         </MenuItem>
+
+        <MenuItem icon="endorsed" text="Analyze the key" onClick={() => navigate('/analyze')} >
+          <ListItemIcon>
+            <TroubleshootIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Analyze</ListItemText>
+        </MenuItem>
+
+
+
         <Divider />
         <MenuItem icon="code" text="View JSON" onClick={() => navigate('/json')} >
           <ListItemIcon>

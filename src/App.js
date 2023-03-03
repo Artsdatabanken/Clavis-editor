@@ -15,6 +15,8 @@ import Files from './components/Files'
 import Taxa from './components/Taxa';
 import Characters from './components/Characters';
 import Statements from './components/Statements';
+import Translations from './components/Translations';
+
 
 import Resources from './components/Resources';
 import JsonView from './components/JsonView';
@@ -23,6 +25,7 @@ import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 import { deepClone } from './Utils';
 import TabularView from './components/tabularView';
+import Analyze from './components/Analyze';
 
 function App() {
   const [clavis, setClavis] = useState({
@@ -238,9 +241,12 @@ function App() {
             <Route path="/characters" element={<Characters characters={clavis["characters"]} statements={clavis["statements"]} languages={clavis["language"]} mediaElements={clavis["mediaElements"]} newImage={newImage} replaceItem={replaceItem} deleteItem={deleteItem} />} />
             <Route path="/statements" element={<Statements statements={clavis["statements"]} characters={clavis["characters"]} taxa={clavis["taxa"]} languages={clavis["language"]} replaceItem={replaceItem} deleteItem={deleteItem}  />} />
             <Route path="/tabular" element={<TabularView clavis={clavis} replaceItem={replaceItem} deleteItem={deleteItem} languages={clavis["language"]} />} />
+            <Route path="/translations" element={<Translations clavis={clavis} replaceItem={replaceItem} deleteItem={deleteItem} languages={clavis["language"]} />} />
             <Route path="/resources" element={<Resources clavis={clavis} />} />
             <Route path="/json" element={<JsonView clavis={clavis} />} />
             <Route path="/test" element={<TestView clavis={clavis} />} />
+            <Route path="/analyze" element={<Analyze clavis={clavis} />} />
+
           </Routes>
         </div>
       </div>

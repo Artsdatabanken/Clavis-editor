@@ -1,19 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 
 import ChatIcon from '@mui/icons-material/Chat';
-import DeleteIcon from '@mui/icons-material/Delete';
 
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Card from '@mui/material/Card';
 import {
     FormGroup, FormControlLabel, FormControl, FormLabel, FormHelperText, Radio,
-    RadioGroup, CardContent, Alert, Select, MenuItem, IconButton
+    RadioGroup, CardContent, Select, MenuItem
 } from "@mui/material";
 import { languageNames } from "../Utils"
 
+
 function Home({ clavis, replaceItem, newPerson, newImage }) {
-    const [removing, setRemoving] = useState(false);
 
     const onFieldChange = (e) => {
         const language = e.target.id.slice(-2);
@@ -56,16 +55,9 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
 
     }
 
-    const addLanguage = (l) => {
-        if (!!l && !clavis["language"].includes(l)) {
-            clavis["language"].push(l)
-            replaceItem(clavis)
-        }
-    }
-
-    const removeLanguage = (l) => {
-        if (!!l && clavis["language"].includes(l)) {
-            clavis["language"] = clavis["language"].filter(x => x !== l)
+    const setMainLanguage = (l) => {
+        if (!!l) {
+            clavis["language"] = [l].concat(clavis["language"].filter(x => x !== l))
             replaceItem(clavis)
         }
     }
@@ -102,6 +94,8 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
             value={value} />;
     }
 
+    const language = !!clavis["language"].length ? clavis["language"][0] : false
+
     return (
         <div className='content-section'>
             <h1 className="bp4-heading">General information</h1>
@@ -109,75 +103,47 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
             <Card className="formCard">
                 <CardContent>
                     <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Languages</FormLabel>
-
-                        {clavis["language"].map(l =>
-                            <h4 style={{ "margin": "0.5em" }} key={l}>
-                                <ChatIcon fontSize="inherit" /> {languageNames[l]}
-                                <IconButton aria-label="delete" color={removing === l ? "error" : "default"}
-                                    onClick={() => {
-                                        if (removing === l) {
-                                            removeLanguage(l)
-                                        }
-                                        else {
-                                            setRemoving(l)
-                                        }
-                                    }} variant="contained"><DeleteIcon /></IconButton>
-                            </h4>
-                        )}
+                        <FormLabel component="legend">Main language</FormLabel>
 
                         {
-                            clavis["language"].length < Object.keys(languageNames).length &&
                             <FormGroup>
                                 <Select
                                     fullWidth
                                     sx={{ m: 0, marginY: "5px" }}
                                     id="statement-taxon"
-                                    value={false}
-                                    onChange={(e) => { addLanguage(e.target.value) }}
+                                    value={language}
+                                    onChange={(e) => { setMainLanguage(e.target.value) }}
                                 >
-                                    <MenuItem value={false}>Add a language...</MenuItem>
+
+                                    {!!clavis["language"].length && (
+                                        <MenuItem value={clavis["language"][0]} key={clavis["language"][0]}>
+                                            <ChatIcon fontSize="inherit" /> {languageNames[clavis["language"][0]]}
+                                        </MenuItem>
+                                    )}
+
+                                    {!clavis["language"].length && (
+                                        <MenuItem value={false}>Choose the main language...</MenuItem>
+                                    )}
+
+
                                     {
                                         Object.entries(languageNames)
-                                            .filter(([key, value]) => {
-                                                return !clavis["language"].includes(key)
-                                            })
+                                            .filter(([key, value]) =>
+                                                clavis["language"].length === 0 || key !== clavis["language"][0]
+                                            )
                                             .map(([key, value]) =>
                                                 <MenuItem value={key} key={key}>{value}</MenuItem>
-
                                             )
                                     }
 
                                 </Select>
-
                             </FormGroup>
-
                         }
 
-                        <FormHelperText>The languages supported by the key. Select at least one.</FormHelperText>
+                        <FormHelperText>The main language of the key. You can add secondary languages under "Translations".</FormHelperText>
                     </FormControl>
                 </CardContent>
             </Card>
-
-            <Card className="formCard" >
-                <CardContent>
-                    <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Title</FormLabel>
-                        <FormGroup>
-
-                            {clavis["language"].map(function (l) {
-                                return getLanguageInput("title", "E.g. 'Birds of Norway'", l, true)
-                            })}
-                            {
-                                !clavis["language"].length &&
-                                <Alert severity="error">Add at least one language first.</Alert>
-                            }
-                        </FormGroup>
-
-                        <FormHelperText>Appears as the name of the key.</FormHelperText>
-                    </FormControl>
-                </CardContent>
-            </Card >
 
             <Card className="formCard" >
                 <CardContent>
@@ -196,103 +162,96 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
                 </CardContent>
             </Card>
 
-            <Card className="formCard" >
-                <CardContent>
-                    <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Creator</FormLabel>
-                        <FormGroup>
+            {!!language &&
+                <Card className="formCard" >
+                    <CardContent>
+                        <FormControl component="fieldset" variant="standard" fullWidth>
+                            <FormLabel component="legend">Title</FormLabel>
+                            <FormGroup>
+                                {getLanguageInput("title", "E.g. 'Birds of Norway'", language, true)}
+                            </FormGroup>
 
-                            {clavis["language"].map(function (l) {
-                                return getLanguageInput("creator", "E.g. 'Wouter Koch'", l)
-                            })}
-                            {
-                                !clavis["language"].length &&
-                                <Alert severity="error">Add at least one language first.</Alert>
-                            }
-                        </FormGroup>
+                            <FormHelperText>Appears as the name of the key.</FormHelperText>
+                        </FormControl>
+                    </CardContent>
+                </Card >
+            }
 
-                        <FormHelperText>The name of the creator of the key.</FormHelperText>
-                    </FormControl>
-                </CardContent>
-            </Card >
+            {!!language &&
+                <Card className="formCard" >
+                    <CardContent>
+                        <FormControl component="fieldset" variant="standard" fullWidth>
+                            <FormLabel component="legend">Creator</FormLabel>
+                            <FormGroup>
+                                {getLanguageInput("creator", "E.g. 'Wouter Koch'", language)}
+                            </FormGroup>
 
-            <Card className="formCard" >
-                <CardContent>
-                    <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Audience</FormLabel>
-                        <FormGroup>
-                            {clavis["language"].map(function (l) {
-                                return getLanguageInput("audience", "E.g. 'Undergraduate students and up'", l)
-                            })}
-                            {
-                                !clavis["language"].length &&
-                                <Alert severity="error">Add at least one language first.</Alert>
-                            }
-                        </FormGroup>
+                            <FormHelperText>The name of the creator of the key.</FormHelperText>
+                        </FormControl>
+                    </CardContent>
+                </Card >
+            }
 
-                        <FormHelperText>Description of the intended audience for the key.</FormHelperText>
-                    </FormControl>
-                </CardContent>
-            </Card >
+            {!!language &&
+                <Card className="formCard" >
+                    <CardContent>
+                        <FormControl component="fieldset" variant="standard" fullWidth>
+                            <FormLabel component="legend">Audience</FormLabel>
+                            <FormGroup>
+                                {getLanguageInput("audience", "E.g. 'Undergraduate students and up'", language)}
+
+                            </FormGroup>
+
+                            <FormHelperText>Description of the intended audience for the key.</FormHelperText>
+                        </FormControl>
+                    </CardContent>
+                </Card >
+            }
+
+            {!!language &&
+                <Card className="formCard" >
+                    <CardContent>
+                        <FormControl component="fieldset" variant="standard" fullWidth>
+                            <FormLabel component="legend">Region name</FormLabel>
+                            <FormGroup>
+                                {getLanguageInput("geography", "E.g. 'Norway', 'Europe', 'Trøndelag', etc.", language)}
+                            </FormGroup>
+                            <FormHelperText>The name of the region for which the key is valid (e.g. covers all subtaxa).</FormHelperText>
+                        </FormControl>
+                    </CardContent>
+                </Card>
+            }
 
 
-            <Card className="formCard" >
-                <CardContent>
-                    <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Region name</FormLabel>
-                        <FormGroup>
-                            {clavis["language"].map(function (l) {
-                                return getLanguageInput("geography", "E.g. 'Norway', 'Europe', 'Trøndelag', etc.", l)
-                            })}
-                            {
-                                !clavis["language"].length &&
-                                <Alert severity="error">Add at least one language first.</Alert>
-                            }
-                        </FormGroup>
+            {!!language &&
+                <Card className="formCard" >
+                    <CardContent>
+                        <FormControl component="fieldset" variant="standard" fullWidth>
+                            <FormLabel component="legend">Description</FormLabel>
+                            <FormGroup>
+                                {getLanguageInput("description", "Describe the key", language)}
+                            </FormGroup>
 
-                        <FormHelperText>The name of the region for which the key is valid (e.g. covers all subtaxa).</FormHelperText>
-                    </FormControl>
-                </CardContent>
-            </Card>
+                            <FormHelperText>Short description of the key.</FormHelperText>
+                        </FormControl>
+                    </CardContent>
+                </Card >
+            }
+            {!!language &&
 
-            <Card className="formCard" >
-                <CardContent>
-                    <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Description</FormLabel>
-                        <FormGroup>
-                            {clavis["language"].map(function (l) {
-                                return getLanguageInput("description", "Describe the key", l)
-                            })}
-                            {
-                                !clavis["language"].length &&
-                                <Alert severity="error">Add at least one language first.</Alert>
-                            }
-                        </FormGroup>
+                <Card className="formCard" >
+                    <CardContent>
+                        <FormControl component="fieldset" variant="standard" fullWidth>
+                            <FormLabel component="legend">Description ID</FormLabel>
+                            <FormGroup>
+                                {getLanguageInput("descriptionUrl", "Provide an ID", language)}
+                            </FormGroup>
 
-                        <FormHelperText>Short description of the key.</FormHelperText>
-                    </FormControl>
-                </CardContent>
-            </Card >
-
-            <Card className="formCard" >
-                <CardContent>
-                    <FormControl component="fieldset" variant="standard" fullWidth>
-                        <FormLabel component="legend">Description ID</FormLabel>
-                        <FormGroup>
-                            {clavis["language"].map(function (l) {
-                                return getLanguageInput("descriptionUrl", "Provide an ID", l)
-                            })}
-                            {
-                                !clavis["language"].length &&
-                                <Alert severity="error">Add at least one language first.</Alert>
-                            }
-                        </FormGroup>
-
-                        <FormHelperText>ID of an article describing the key on NBIC's site.</FormHelperText>
-                    </FormControl>
-                </CardContent>
-            </Card >
-
+                            <FormHelperText>ID of an article describing the key on NBIC's site.</FormHelperText>
+                        </FormControl>
+                    </CardContent>
+                </Card >
+            }
         </div >
 
 

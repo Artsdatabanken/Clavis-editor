@@ -279,7 +279,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
         Taxa are what the key is meant to distinguish between. They can be a simple flat list of species or other taxonomic entities, or have a hierarchy so that species fall under a genus, for example. All taxa can also have subdivisions below them, such as morphs, sexes, life stages, etc. By default, a key will keep asking for input from the user until only one item remains, without it having any more entities under it. This can be changed by marking a taxon as an endpoint. Then, if it is the only remaining option, that will be the outcome of the key, even when it has several subtaxa or -divisions under it which have not all been excluded. A key can for example have information on both the male and female of a species, but be made to stop as soon as the species is known, even when the sex is not yet determined. But one can also make a genus an end point, so that the genus is the answer when it has been determined, even when there is information on the species in that genus, which have not yet been determined.
       </Alert>
 
-      {!languages.length && <Alert severity="error">Add at least one language first under "General information".</Alert>}
+      {!languages.length && <Alert severity="error">Add a main language first under "General information".</Alert>}
 
       {!!languages.length && !taxa.length &&
         <p>No taxa yet, click below to add some.</p>

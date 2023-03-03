@@ -139,7 +139,7 @@ function Statements({ statements, characters, taxa, languages, replaceItem, dele
 
 
 
-      {!languages.length && <Alert severity="error">Add at least one language first under "General information".</Alert>}
+      {!languages.length && <Alert severity="error">Choose a main language first under "General information".</Alert>}
       {!taxa.length && <Alert severity="error">Create at least one taxon first.</Alert>}
       {!characters.length && <Alert severity="error">Create at least one character first.</Alert>}
 
