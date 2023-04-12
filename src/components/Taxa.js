@@ -5,9 +5,10 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import {
-  IconButton, Avatar, Alert, AlertTitle, FormControlLabel,
+  IconButton, Avatar, Alert, AlertTitle, FormControlLabel, FormControl, CardContent, FormLabel, FormGroup,
   Button, Accordion, AccordionSummary, AccordionDetails, Switch, Fab
 } from "@mui/material";
 
@@ -91,11 +92,9 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
 
   const addImage = (imageId) => {
     // false means don't change at all, undefined means remove
-    if(imageId !== false) {
+    if (imageId !== false) {
       addingImageTo["media"] = imageId
-      replaceItem(addingImageTo)
     }
-
     setAddingImageTo(false)
   }
 
@@ -144,7 +143,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
 
     if (t["media"]) {
       let mediaElement = mediaElements.filter(m => m["id"] === t["media"])[0]
-      media = <Avatar onClick={() => { setAddingImageTo(t); }} sx={{ width: 64, height: 64 }} src={getImgSrc(mediaElement)} />
+      media = <Avatar onClick={() => { setAddingImageTo(t); }} sx={{ width: 64, height: 64 }} src={getImgSrc(mediaElement, 64, 64)} />
     }
     else {
       media = <div><IconButton sx={{ width: 64, height: 64 }} aria-label="add image" onClick={() => { setAddingImageTo(t); }}><AddPhotoAlternateIcon sx={{ fontSize: 42 }} /></IconButton></div>
@@ -156,7 +155,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
       names = getEditableItems({
         "item": t,
         "field": "vernacularName",
-        "placeholder": "E.g. 'Eurasian lynx'",
+        "placeholder": "Vernacular name of this taxon'",
         "languages": languages,
         "callback": setValue,
         "editingField": editingField,
@@ -167,7 +166,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
       names = getEditableItems({
         "item": t,
         "field": "label",
-        "placeholder": "E.g. 'larva' or 'male'",
+        "placeholder": "Name of this non-taxonomic unit",
         "languages": languages,
         "callback": setValue,
         "editingField": editingField,
@@ -178,7 +177,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
     let makeEndpoint = ""
 
     if (t["children"] && t["children"].length) {
-      makeEndpoint = <FormControlLabel control={<Switch id="en" key="en" onChange={() => toggleEndpoint(t)} checked={t["isEndPoint"]} />} label="This is an endpoint" />
+      makeEndpoint = <FormControlLabel control={<Switch id="en" key="en" onChange={() => toggleEndpoint(t)} checked={t["isEndPoint"]} />} label="Endpoint" />
     }
 
 
@@ -195,47 +194,82 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
         >
           <Accordion {...provided.dragHandleProps}>
             <AccordionSummary
+              style={{ backgroundColor: '#455a6433' }}
               expandIcon={<ExpandMoreIcon />}
             >
-              <h3><i>{t["scientificName"] || getBestString(t["label"])}</i>
-
-                <IconButton aria-label="delete" color={removing === t ? "error" : "default"}
-                  onClick={() => {
-                    if (removing === t) {
-                      remove(t)
-                    }
-                    else {
-                      setRemoving(t)
-                    }
-                  }} variant="contained"><DeleteIcon /></IconButton>
+              <h3><IconButton ><DragIndicatorIcon /></IconButton> <i>{t["scientificName"] || getBestString(t["label"])}</i>
 
               </h3>
             </AccordionSummary>
             <AccordionDetails className="sideBySide">
               {media}
-              <div style={{ flexGrow: "1" }}>
-                <p>{names}</p>
-                <p>
 
-                  {getEditableItems({
-                    "item": t,
-                    "field": "descriptionUrl",
-                    "placeholder": "The ID of a page at NBIC",
-                    "languages": languages,
-                    "callback": setValue,
-                    "editingField": editingField,
-                    "setEditingField": setEditingField,
-                    "service": "service:nbic_page"
-                  })}
+              <FormControl component="fieldset" variant="standard" fullWidth>
+                <CardContent>
+                  <FormControl component="fieldset" variant="standard" fullWidth>
+                    <FormLabel component="legend">{t.hasOwnProperty("scientificName") ? "Vernacular name" : "Label"}</FormLabel>
+                    <FormGroup>
+                      {names}
+                    </FormGroup>
+                  </FormControl>
 
-                </p>
-                <p>{makeEndpoint}</p>
+                  <FormControl component="fieldset" variant="standard" fullWidth>
+                    <FormLabel component="legend">Description ID</FormLabel>
+                    <FormGroup>
+                      {getEditableItems({
+                        "item": t,
+                        "field": "descriptionUrl",
+                        "placeholder": "The ID of a page at NBIC",
+                        "languages": languages,
+                        "callback": setValue,
+                        "editingField": editingField,
+                        "setEditingField": setEditingField,
+                        "service": "service:nbic_page"
+                      })}
+                    </FormGroup>
+                  </FormControl>
 
-                <Button aria-label="add subtaxon" onClick={() => { setAddingSubtaxon(t["id"]) }} variant="contained" startIcon={<AddIcon />}>Add subtaxon</Button>
+
+                  <FormControl component="fieldset" variant="standard" fullWidth>
+                    <FormGroup>
+                      {makeEndpoint}
+                    </FormGroup>
+                  </FormControl>
+
+
+                  <FormControl component="fieldset" variant="standard">
+                    <FormGroup>
+                      <Button aria-label="add subtaxon" onClick={() => { setAddingSubtaxon(t["id"]) }} variant="contained" startIcon={<AddIcon />}>Add subtaxon</Button>
+                    </FormGroup>
+                  </FormControl>
 
 
 
-              </div>
+
+                </CardContent>
+
+
+                <CardContent>
+
+                  <IconButton aria-label="delete" color={removing === t ? "error" : "default"}
+                    onClick={() => {
+                      if (removing === t) {
+                        remove(t)
+                      }
+                      else {
+                        setRemoving(t)
+                      }
+                    }} variant="contained" style={{ float: "right" }}><DeleteIcon />{removing === t ? "Are you sure?" : ""}</IconButton>
+                </CardContent>
+
+              </FormControl>
+
+
+
+
+
+
+
 
             </AccordionDetails>
           </Accordion>
@@ -279,7 +313,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
         Taxa are what the key is meant to distinguish between. They can be a simple flat list of species or other taxonomic entities, or have a hierarchy so that species fall under a genus, for example. All taxa can also have subdivisions below them, such as morphs, sexes, life stages, etc. By default, a key will keep asking for input from the user until only one item remains, without it having any more entities under it. This can be changed by marking a taxon as an endpoint. Then, if it is the only remaining option, that will be the outcome of the key, even when it has several subtaxa or -divisions under it which have not all been excluded. A key can for example have information on both the male and female of a species, but be made to stop as soon as the species is known, even when the sex is not yet determined. But one can also make a genus an end point, so that the genus is the answer when it has been determined, even when there is information on the species in that genus, which have not yet been determined.
       </Alert>
 
-      {!languages.length && <Alert severity="error">Add a main language first under "General information".</Alert>}
+      {!languages.length && <Alert severity="error">Specify the main language first under "General information".</Alert>}
 
       {!!languages.length && !taxa.length &&
         <p>No taxa yet, click below to add some.</p>

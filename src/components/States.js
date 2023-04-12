@@ -4,18 +4,24 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import AddIcon from '@mui/icons-material/Add';
+
 import {
-  CardContent, IconButton, Card, Avatar, Button
+  IconButton, Avatar, Button, FormHelperText
 } from "@mui/material";
-import { getImgSrc, getEditableItems, deepClone, getBestString, reorder, getDraggableItemStyle } from "../Utils"
+
+import { getImgSrc, getEditableItems, deepClone, reorder, getDraggableItemStyle } from "../Utils"
 import ImageSelector from "./ImageSelector";
 
 
-function States({ character, statements, languages, mediaElements, newImage, replaceItem, deleteItem }) {
+function States({ clavis, character, mediaElements, newImage, replaceItem, deleteItem }) {
+  let statements = clavis["statements"]
+  let languages = clavis["language"]
+
   const [addingImageTo, setAddingImageTo] = useState(false);
   const [editingField, setEditingField] = useState({});
   const [removing, setRemoving] = useState(false);
-
 
   // Sets or adds the value of a field in the character. Can have a language and/or an external service
   const setValue = (field, item, l, value, service) => {
@@ -48,43 +54,56 @@ function States({ character, statements, languages, mediaElements, newImage, rep
   }
 
   const addState = () => {
-    let states = deepClone(character["states"]);
-
-    const lastState = !!states.length ? states[states.length-1]["id"] : false
-    const lastStatement = statements.find(x => x.value === lastState)
+    let c = deepClone(clavis)
 
     const id = "state:" + uuidv4().replaceAll("-", "")
-    states.push(
-      {
-        "id": id
+
+    c.characters.map(char => {
+      if (char.id === character.id) {
+        char.states = char.states.concat(
+          [{
+            "id": id
+          }]
+        )
       }
-    )
-    character["states"] = states
-
-    replaceItem(character)
-    
-
-    if(!!lastStatement) {
-      let updatedStatements = deepClone(statements)
-      updatedStatements.splice(statements.findIndex(x => x.id === lastStatement.id)+1, 0, {
-        "id": "statement:" + uuidv4().replaceAll("-", ""),
-        "taxon": lastStatement.taxon,
-        "character": lastStatement.character,
-        "value": id
-      })
-      replaceItem(updatedStatements);
+      return char
     }
+    )
+
+    // Add empty statements for all taxa that already have at least one statement for this character
+    const taxaWithCharacter = [...new Set(statements.filter(x => x.character === character.id).map(x => x.taxon))]
+
+    taxaWithCharacter.forEach(taxon =>
+      c.statements = c.statements.concat([
+        {
+          "id": "statement:" + uuidv4().replaceAll("-", ""),
+          "taxon": taxon,
+          "character": character.id,
+          "value": id,
+        }
+      ]
+      )
+    )
+    replaceItem(c)
   }
 
   const remove = (state) => {
-    replaceItem(deleteItem(state))
-    replaceItem(deepClone(statements).filter(x => x.value !== state.id))
+    let c = deepClone(clavis)
+    c.statements = c.statements.filter(s => s.value !== state.id)
+    c.characters.map(c => {
+      c.states = c.states.filter(s => s.id !== state.id);
+      return c
+    })
+    replaceItem(c)
+
+    // replaceItem(deleteItem(state))
+    // replaceItem(deepClone(statements).filter(x => x.value !== state.id))
   }
 
 
   // Adds an (existing) image to an item by referring to its id. Generic enough for copy-paste
   const addImage = (imageId) => {
-    if(imageId !== false) {
+    if (imageId !== false) {
       addingImageTo["media"] = imageId
       replaceItem(addingImageTo)
     }
@@ -109,11 +128,12 @@ function States({ character, statements, languages, mediaElements, newImage, rep
   }
 
   const renderState = (state, index) => {
+
     let media = "";
 
     if (state["media"]) {
       let mediaElement = mediaElements.filter(m => m["id"] === state["media"])[0]
-      media = <Avatar onClick={() => { setAddingImageTo(state) }} sx={{ width: 64, height: 64 }} src={getImgSrc(mediaElement)} />
+      media = <Avatar onClick={() => { setAddingImageTo(state) }} sx={{ width: 64, height: 64 }} src={getImgSrc(mediaElement, 64, 64)} />
     }
     else {
       media = <div><IconButton sx={{ width: 64, height: 64 }} aria-label="add image" onClick={() => { setAddingImageTo(state) }}><AddPhotoAlternateIcon sx={{ fontSize: 42 }} /></IconButton></div>
@@ -130,25 +150,12 @@ function States({ character, statements, languages, mediaElements, newImage, rep
             provided.draggableProps.style
           )}
         >
-          <Card className="formCard"  {...provided.dragHandleProps}>
-            <CardContent className="sideBySide">
+          <div className="formCard"  {...provided.dragHandleProps}>
+            <div className="sideBySide">
+              <div style={{ marginBottom: "auto", marginTop: "auto" }}>
+                <IconButton ><DragIndicatorIcon /></IconButton></div>
               {media}
               <div style={{ flexGrow: "1" }}>
-                <h4>{getBestString(state["title"])}
-                  <IconButton aria-label="delete" color={removing === state ? "error" : "default"}
-                    onClick={() => {
-                      if (removing === state) {
-                        remove(state)
-                      }
-                      else {
-                        setRemoving(state)
-                      }
-                    }} variant="contained"><DeleteIcon /></IconButton>
-                </h4>
-                
-
-
-
                 {getEditableItems({
                   "item": state,
                   "field": "title",
@@ -159,11 +166,22 @@ function States({ character, statements, languages, mediaElements, newImage, rep
                   "setEditingField": setEditingField
                 })}
 
+
               </div>
+              <div style={{ marginBottom: "auto", marginTop: "auto" }}>
+                <IconButton aria-label="delete" color={removing === state ? "error" : "default"}
+                  onClick={() => {
+                    if (removing === state) {
+                      remove(state)
+                    }
+                    else {
+                      setRemoving(state)
+                    }
+                  }} variant="contained"><DeleteIcon />{removing === state ? "Are you sure?" : ""}</IconButton></div>
 
-            </CardContent>
+            </div>
 
-          </Card >
+          </div >
         </div>
       )}
 
@@ -177,6 +195,7 @@ function States({ character, statements, languages, mediaElements, newImage, rep
   return (
     <p>
       <h2 className="bp4-heading">States</h2>
+      <FormHelperText>The possible answers to this character.</FormHelperText>
 
       {!character["states"].length &&
         <p>No states yet.</p>
@@ -200,9 +219,7 @@ function States({ character, statements, languages, mediaElements, newImage, rep
       </DragDropContext>
 
 
-
-
-      {<Button onClick={addState}>New state</Button>}
+      {<Button variant="outlined" style={{ marginLeft: "165px" }} onClick={addState} placeholder="Add new state" startIcon={<AddIcon />}>Add new state</Button>}
 
       {!!addingImageTo &&
         <ImageSelector callback={addImage} newImage={newImage} />

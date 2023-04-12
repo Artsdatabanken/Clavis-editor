@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 import Card from '@mui/material/Card';
-import { flattenTaxa, getBestString, deepClone, changeStatement } from "../Utils"
+import { flattenTaxa, getBestString, deepClone, changeStatement, getStatementIcon} from "../Utils"
 import {
     Dialog, DialogTitle, DialogContent, DialogContentText,
     DialogActions, Button, ButtonGroup
@@ -26,7 +26,8 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
             statement.taxon === taxon.id && statement.character === character.id
         ))
 
-        if (!filteredStatements.length) {
+
+        if (filteredStatements.length === 0) {
             setStatementsAreNew(true)
 
             character.states.forEach(state => {
@@ -38,6 +39,20 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
                 filteredStatements.push(
                     adding
                 )
+            });
+        }
+        else if (filteredStatements.length < character.states.length) {
+            character.states.forEach(state => {
+                if (!filteredStatements.find(x => x.value === state.id)) {
+                    let adding = {}
+                    adding.taxon = taxon.id
+                    adding.character = character.idsetStatementsAreNew
+                    adding.value = state.id
+                    adding.id = "statement:" + uuidv4().replaceAll("-", "")
+                    filteredStatements.push(
+                        adding
+                    )
+                }
             });
         }
 
@@ -67,12 +82,11 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
 
     const setStatements = () => {
         if (statementsAreNew) {
+            console.log(currentStatements)
             replaceItem(deepClone(clavis.statements).concat(currentStatements))
         }
         else {
-            currentStatements.forEach(statement => {
-                replaceItem(statement)
-            })
+            replaceItem(currentStatements, null, true)
         }
 
         setCurrentStatements([])
@@ -132,9 +146,9 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
         if (typeof (lastResult) !== "undefined" && lastLevel.length < taxon.level.length) {
             return {
                 "html": <td key={taxon.id + state.id} style={{
-                    "cursor": "not-allowed", "border": "1px solid grey", "color": "lightgrey", "textAlign": "center",
+                    "cursor": "not-allowed", "border": "1px solid grey", "opacity": "0.3", "color": "lightgrey", "textAlign": "center",
                     "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
-                }}>{lastResult}</td>,
+                }}>{getStatementIcon(lastResult)}</td>,
                 "lastLevel": lastLevel,
                 "lastResult": lastResult
             }
@@ -145,7 +159,7 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
                 "html": <td key={taxon.id + state.id} onClick={() => openStatements(character, taxon)} style={{
                     "cursor": "pointer", "border": "1px solid grey", "textAlign": "center",
                     "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
-                }}>{thisStatement.frequency}</td>,
+                }}>{getStatementIcon(thisStatement.frequency)}</td>,
                 "lastLevel": taxon.level,
                 "lastResult": thisStatement.frequency
             }
@@ -156,7 +170,7 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
                 "html": <td key={taxon.id + state.id} onClick={() => openStatements(character, taxon)} style={{
                     "cursor": "pointer", "border": "1px solid grey", "textAlign": "center",
                     "backgroundColor": "rgba(255, 255, 0, " + ((0.5 * (highlightedTaxon === taxon.id)) + (0.5 * (highlightedCharacter === character.id))) ** 2 + ")"
-                }}>0</td>,
+                }}>{getStatementIcon(0)}</td>,
                 "lastLevel": taxon.level,
                 "lastResult": 0
             }

@@ -3,7 +3,6 @@ import React from "react";
 import ChatIcon from '@mui/icons-material/Chat';
 
 import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import Card from '@mui/material/Card';
 import {
     FormGroup, FormControlLabel, FormControl, FormLabel, FormHelperText, Radio,
@@ -84,9 +83,6 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
             sx={{ m: 1 }}
             fullWidth
             label={required ? "Required" : ""}
-            InputProps={{
-                startAdornment: <InputAdornment position="start">{languageNames[l]}</InputAdornment>,
-            }}
             key={"key-" + name + "-" + l}
             id={"key-" + name + "-" + l}
             placeholder={placeholder}

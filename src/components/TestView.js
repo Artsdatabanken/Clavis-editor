@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import Identification from "../key-player/components/Identification"
+import Identification from "../clavis-player/src/components/Identification"
 import { deepClone } from "../Utils";
 
 function TestView({ clavis }) {

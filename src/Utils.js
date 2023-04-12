@@ -1,7 +1,6 @@
 import React from "react";
-import { TextField, InputAdornment, IconButton, Alert } from "@mui/material";
+import { TextField, InputAdornment, IconButton } from "@mui/material";
 import CheckIcon from '@mui/icons-material/Check';
-import EditIcon from '@mui/icons-material/Edit';
 
 
 export const languageNames = {
@@ -23,14 +22,6 @@ export const getDraggableItemStyle = (isDragging, draggableStyle) => ({
   marginBottom: 4,
   ...draggableStyle
 });
-
-const fieldNames = {
-  "title": "title",
-  "description": "description",
-  "vernacularName": "vernacular name",
-  "label": "label",
-  "descriptionUrl": "description link"
-}
 
 export const taxonNames = [
   "kingdom",
@@ -65,7 +56,7 @@ export const getBestString = (ob) => {
     return ob
   }
 
-  return !!ob ? ob.en || ob.nb || ob.nn || "<empty>" : "<empty>"
+  return !!ob ? ob.en || ob.nb || ob.nn || "" : ""
 }
 
 
@@ -91,12 +82,12 @@ export const getLanguageInput = (item, field, placeholder, l, required, handleCh
     endAdornment = <InputAdornment position="end"><IconButton onClick={doneCallback} ><CheckIcon /></IconButton></InputAdornment>
   }
 
+
   return <TextField
     sx={{ m: 1 }}
     fullWidth
     label={required ? "Required" : ""}
     InputProps={{
-      startAdornment: <InputAdornment position="start">{languageNames[l]}</InputAdornment>,
       endAdornment: endAdornment
     }}
     key={item["id"] + "-" + field + "-" + l}
@@ -117,22 +108,7 @@ export const getLanguageInput = (item, field, placeholder, l, required, handleCh
 
 
 export const getEditableItems = (props) => {
-
-  const doEdit = (l) => props.setEditingField({ "id": props.item.id, "field": props.field, "l": l })
-
-  return props.languages.map((l) => {
-    if (props.item.id === props.editingField.id && props.editingField.field === props.field && props.editingField.l === l) {
-      return propsToField(props, l)
-    }
-    else if (props.item[props.field] && props.item[props.field][l] && props.service) {
-      return <p>{languageNames[l]}: {props.item[props.field][l]["externalId"]}<IconButton aria-label="edit" size="small" onClick={() => doEdit(l)}><EditIcon fontSize="inherit" /></IconButton></p>
-
-    }
-    else if (props.item[props.field] && props.item[props.field][l]) {
-      return <p>{languageNames[l]}: {props.item[props.field][l]}<IconButton aria-label="edit" size="small" onClick={() => doEdit(l)}><EditIcon fontSize="inherit" /></IconButton></p>
-    }
-    return <Alert severity="warning">No {languageNames[l]} {fieldNames[props.field]}<IconButton aria-label="edit" size="small" onClick={() => doEdit(l)}><EditIcon fontSize="inherit" /></IconButton></Alert>
-  })
+  return propsToField(props, props.languages[0])
 }
 
 
@@ -150,6 +126,7 @@ export const getEditingItems = (props) => {
 const propsToField = (props, l) => {
   return getLanguageInput(props.item, props.field, props.placeholder, l, props.required, props.callback, props.service, props.setEditingField)
 }
+
 
 
 export const search = (items, value) => {
@@ -267,4 +244,20 @@ export const changeStatement = (statements, statetmentId, frequency, character) 
   // Otherwise, it is a special case somehow
   console.warn("No logic found for sibling statements")
   return statements
+}
+
+export const getStatementIcon = freq => {
+  const alwaysIcon = <span role="img" aria-label="Checkmark">✅</span>
+  const sometimesIcon = <span role="img" aria-label="Checkmark">🟨</span>
+  const neverIcon = <span role="img" aria-label="Checkmark">❌</span>
+  if (freq === 1) {
+    return alwaysIcon
+  }
+  else if (freq === 0) {
+    return neverIcon
+  }
+  else if (freq > 0) {
+    return sometimesIcon
+  }
+  return ""
 }

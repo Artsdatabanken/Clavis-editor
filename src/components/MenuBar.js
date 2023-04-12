@@ -9,13 +9,13 @@ import InfoIcon from '@mui/icons-material/Info';
 import LanguageIcon from '@mui/icons-material/Language';
 import ForestIcon from '@mui/icons-material/Forest';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
-import RuleIcon from '@mui/icons-material/Rule';
 import BackupTableIcon from '@mui/icons-material/BackupTable';
 // import CollectionsIcon from '@mui/icons-material/Collections';
 // import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import QuizIcon from '@mui/icons-material/Quiz';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
+import YardIcon from '@mui/icons-material/Yard';
 
 
 function MenuBar() {
@@ -52,17 +52,23 @@ function MenuBar() {
           </ListItemIcon>
           <ListItemText>Characters</ListItemText>
         </MenuItem>
-        <MenuItem text="Statements" onClick={() => navigate('/statements')} >
+        {/* <MenuItem text="Statements" onClick={() => navigate('/statements')} >
           <ListItemIcon>
             <RuleIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Statements</ListItemText>
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem text="Tabular" onClick={() => navigate('/tabular')} >
           <ListItemIcon>
             <BackupTableIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Tabular</ListItemText>
+        </MenuItem>
+        <MenuItem text="Tabular" onClick={() => navigate('/taxonview')} >
+          <ListItemIcon>
+            <YardIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Taxon view</ListItemText>
         </MenuItem>
         <MenuItem text="Translations" onClick={() => navigate('/translations')} >
           <ListItemIcon>

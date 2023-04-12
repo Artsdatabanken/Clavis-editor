@@ -14,13 +14,13 @@ import Home from './components/Home';
 import Files from './components/Files'
 import Taxa from './components/Taxa';
 import Characters from './components/Characters';
-import Statements from './components/Statements';
 import Translations from './components/Translations';
 
 
 import Resources from './components/Resources';
 import JsonView from './components/JsonView';
 import TestView from './components/TestView';
+import TaxonView from './components/TaxonView';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 import { deepClone } from './Utils';
@@ -69,7 +69,7 @@ function App() {
     let mediaElements = c["mediaElements"];
     let id
 
-    if(!imgId) {
+    if (!imgId) {
       return imgId
     }
 
@@ -134,7 +134,21 @@ function App() {
     return item + "s"
   }
 
-  const replaceItem = (item, type) => {
+
+  const replaceTaxon = (taxon, taxa) => {
+    return taxa.map(t => {
+      if(t.id === taxon.id) {
+        return taxon
+      }
+      if(t.children && t.children.length) {
+        t.children = replaceTaxon(taxon, t.children)
+      }
+      return t
+    })
+  }
+
+
+  const replaceItem = (item, type, singleItemsOnly) => {
 
     let c = { ...clavis }
     if ("$schema" in item) {
@@ -144,6 +158,25 @@ function App() {
     else if (type) {
       c[type] = item
       setClavis(c)
+      return item
+    }
+    else if (Array.isArray(item) && !!singleItemsOnly) {
+
+      if (item.length > 0) {
+        let itemType = item[0]["id"].split(":")[0]
+        let items = deepClone(c[plurals(itemType)])
+
+        item.forEach(changedItem => {
+          items = items.map(i => {
+            if (i["id"] === changedItem["id"]) {
+            }
+            return (i["id"] === changedItem["id"] ? changedItem : i)
+          })
+        })
+
+        c[plurals(itemType)] = items
+        setClavis(c)
+      }
       return item
     }
     else if (Array.isArray(item)) {
@@ -173,16 +206,28 @@ function App() {
       })
       return replaceItem(character)
     }
+    else if (item["id"].split(":")[0] === "taxon") {
+      console.log(item)
+      let taxa = deepClone(c.taxa)
+      c.taxa = replaceTaxon(item, taxa)
+      setClavis(c)
+    }
     else {
       let itemType = item["id"].split(":")[0]
       let items = deepClone(c[plurals(itemType)])
 
-      items = items.map(i => {
-        return (i["id"] === item["id"] ? item : i)
-      })
-      c[plurals(itemType)] = items
+      if (!items.find(i => i["id"] === item["id"])) {
+        items = items.concat([item])
+      }
+      else {
+        items = items.map(i => {
+          return (i["id"] === item["id"] ? item : i)
+        })
+      }
 
+      c[plurals(itemType)] = items
       setClavis(c)
+
       return items
     }
   }
@@ -208,13 +253,13 @@ function App() {
 
       return character
     }
-    else if(itemType === "taxon") {
-      if(!items) {
+    else if (itemType === "taxon") {
+      if (!items) {
         items = deepClone(c.taxa)
       }
       items = items.filter(x => x.id !== item.id)
-      items = items.map(x =>{
-        if(!!x.children) {
+      items = items.map(x => {
+        if (!!x.children) {
           x.children = deleteItem(item, x.children)
         }
         return x
@@ -237,11 +282,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home clavis={clavis} replaceItem={replaceItem} newPerson={newPerson} newImage={newImage} />} />
             <Route path="/files" element={<Files clavis={clavis} setClavis={setClavis} />} />
-            <Route path="/taxa" element={<Taxa taxa={clavis["taxa"]} languages={clavis["language"]} mediaElements={clavis["mediaElements"]} newImage={newImage} replaceItem={replaceItem}  deleteItem={deleteItem} />} />
-            <Route path="/characters" element={<Characters characters={clavis["characters"]} statements={clavis["statements"]} languages={clavis["language"]} mediaElements={clavis["mediaElements"]} newImage={newImage} replaceItem={replaceItem} deleteItem={deleteItem} />} />
-            <Route path="/statements" element={<Statements statements={clavis["statements"]} characters={clavis["characters"]} taxa={clavis["taxa"]} languages={clavis["language"]} replaceItem={replaceItem} deleteItem={deleteItem}  />} />
+            <Route path="/taxa" element={<Taxa taxa={clavis["taxa"]} languages={clavis["language"]} mediaElements={clavis["mediaElements"]} newImage={newImage} replaceItem={replaceItem} deleteItem={deleteItem} />} />
+            <Route path="/characters" element={<Characters clavis={clavis} newImage={newImage} replaceItem={replaceItem} deleteItem={deleteItem} />} />
+            {/* <Route path="/statements" element={<Statements statements={clavis["statements"]} characters={clavis["characters"]} taxa={clavis["taxa"]} languages={clavis["language"]} replaceItem={replaceItem} deleteItem={deleteItem} />} /> */}
             <Route path="/tabular" element={<TabularView clavis={clavis} replaceItem={replaceItem} deleteItem={deleteItem} languages={clavis["language"]} />} />
             <Route path="/translations" element={<Translations clavis={clavis} replaceItem={replaceItem} deleteItem={deleteItem} languages={clavis["language"]} />} />
+            <Route path="/taxonview" element={<TaxonView clavis={clavis} />} />
             <Route path="/resources" element={<Resources clavis={clavis} />} />
             <Route path="/json" element={<JsonView clavis={clavis} />} />
             <Route path="/test" element={<TestView clavis={clavis} />} />

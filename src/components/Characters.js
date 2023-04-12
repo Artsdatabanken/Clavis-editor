@@ -10,29 +10,54 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import {
   CardContent, IconButton, Avatar, Alert, Accordion, AccordionSummary, FormGroup, FormControlLabel, Switch, InputAdornment,
-  TextField, FormControl, Fab, AlertTitle, AccordionDetails, FormLabel, Select, MenuItem, FormHelperText, Button,
-  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
+  TextField, FormControl, Fab, AlertTitle, AccordionDetails, FormLabel, Select, MenuItem, FormHelperText,
 } from "@mui/material";
-import { search, getBestString, getImgSrc, deepClone, getEditableItems, getEditingItems, reorder, getDraggableItemStyle } from "../Utils"
+import { search, getBestString, getImgSrc, deepClone, getEditableItems, reorder, getDraggableItemStyle } from "../Utils"
 
-function Characters({ characters, statements, mediaElements, languages, newImage, replaceItem, deleteItem }) {
+function Characters({ clavis, newImage, replaceItem, deleteItem }) {
+  const languages = clavis["language"]
+  const mediaElements = clavis["mediaElements"]
+  let characters = clavis["characters"]
+
+
   const [addingImageTo, setAddingImageTo] = useState(false);
   const [filtered, setFiltered] = useState(characters);
   const [editingField, setEditingField] = useState({});
   const [newItem, setNewItem] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [searchString, setSearchString] = useState("");
+  const [expandedItem, setExpandedItem] = useState(false);
+
+
+
+  const replaceAndFilter = (item, type) => {
+    let result = replaceItem(item, type)
+
+    if (Array.isArray(result) && result.length && result[0]["id"].split(":")[0] === "character") {
+      console.warn("redoing search")
+      setFiltered(search(result, searchString))
+    }
+    else if ("$schema" in item) {
+      setFiltered(search(item.characters, searchString))
+    }
+  }
 
   // Adds a new character to the list of characters and replaces that list to this updated one
-  const addCharacter = () => {
-    characters = deepClone(characters);
-    characters.push(
-      newItem
-    )
-    replaceCharacter(characters)
-    setNewItem(false)
+  // const addCharacter = () => {
+  //   characters = deepClone(characters);
+  //   characters.push(
+  //     newItem
+  //   )
+  //   replaceAndFilter(characters)
+  //   setNewItem(false)
+  // }
+
+  const toggleExpansion = (itemId) => {
+    setExpandedItem(itemId !== expandedItem ? itemId : false)
   }
 
   const createCharacter = () => {
@@ -42,24 +67,27 @@ function Characters({ characters, statements, mediaElements, languages, newImage
       "title": {},
       "states": []
     })
+    setExpandedItem(id)
   }
 
   const remove = (item) => {
-    setFiltered(replaceItem(deleteItem(item), "characters"))
+    replaceAndFilter(deleteItem(item), "characters")
 
   }
 
   // Adds an (existing) image to an item by referring to its id. Generic enough for copy-paste
   const addImage = (imageId) => {
-    if(imageId !== false) {
+    if (imageId !== false) {
       addingImageTo["media"] = imageId
-      replaceItem(addingImageTo)
+      replaceAndFilter(addingImageTo)
     }
     setAddingImageTo(false)
   }
 
   // Sets or adds the value of a field in the character. Can have a language and/or an external service
   const setValue = (field, item, l, value, service) => {
+    setNewItem(false)
+
     if (l) {
       if (!(field in item)) {
         item[field] = {}
@@ -85,11 +113,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
         item[field] = value
       }
     }
-    replaceItem(item)
-  }
-
-  const replaceCharacter = (item) => {
-    setFiltered(replaceItem(item))
+    replaceAndFilter(item)
   }
 
   const onDragEnd = (result) => {
@@ -104,7 +128,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
       result.destination.index
     );
 
-    setFiltered(replaceItem(items))
+    replaceAndFilter(items)
   }
 
   const renderCharacter = (character, index) => {
@@ -112,7 +136,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
 
     if (character["media"]) {
       let mediaElement = mediaElements.filter(m => m["id"] === character["media"])[0]
-      media = <Avatar onClick={() => { setAddingImageTo(character) }} sx={{ width: 64, height: 64 }} src={getImgSrc(mediaElement)} />
+      media = <Avatar onClick={() => { setAddingImageTo(character) }} sx={{ width: 64, height: 64 }} src={getImgSrc(mediaElement, 64, 64)} />
     }
     else {
       media = <div><IconButton sx={{ width: 64, height: 64 }} aria-label="add image" onClick={() => { setAddingImageTo(character) }}><AddPhotoAlternateIcon sx={{ fontSize: 42 }} /></IconButton></div>
@@ -128,55 +152,65 @@ function Characters({ characters, statements, mediaElements, languages, newImage
             provided.draggableProps.style
           )}
         >
-          <Accordion>
-            <AccordionSummary {...provided.dragHandleProps} expandIcon={<ExpandMoreIcon />}>
-              <h3>{getBestString(character["title"])}
-                <IconButton aria-label="delete" color={removing === character ? "error" : "default"}
-                  onClick={() => {
-                    if (removing === character) {
-                      remove(character)
-                    }
-                    else {
-                      setRemoving(character)
-                    }
-                  }} variant="contained"><DeleteIcon /></IconButton>
-
+          <Accordion expanded={expandedItem === character.id} onChange={() => toggleExpansion(character.id)}>
+            <AccordionSummary {...provided.dragHandleProps} expandIcon={<ExpandMoreIcon />} style={{ backgroundColor: '#455a6433'}}>
+              <h3>
+                <IconButton ><DragIndicatorIcon /></IconButton> {getBestString(character["title"])}
               </h3>
             </AccordionSummary>
             <AccordionDetails className="sideBySide">
               {media}
               <FormControl component="fieldset" variant="standard" fullWidth>
                 <CardContent>
-                  {getEditableItems({
-                    "item": character,
-                    "field": "title",
-                    "placeholder": "E.g. 'Color of the wings'",
-                    "languages": languages,
-                    "callback": setValue,
-                    "editingField": editingField,
-                    "setEditingField": setEditingField
-                  })}
+                  <FormControl component="fieldset" variant="standard" fullWidth>
+                    <FormLabel component="legend">Title</FormLabel>
+                    <FormGroup>
+                      {getEditableItems({
+                        "item": character,
+                        "field": "title",
+                        "placeholder": "E.g. 'Color of the wings'",
+                        "languages": languages,
+                        "callback": setValue,
+                        "editingField": editingField,
+                        "setEditingField": setEditingField
+                      })}
+                    </FormGroup>
+                  </FormControl>
+
+                  <FormControl component="fieldset" variant="standard" fullWidth>
+                    <FormLabel component="legend">Description</FormLabel>
+                    <FormGroup>
+                      {getEditableItems({
+                        "item": character,
+                        "field": "description",
+                        "placeholder": "Optional short further explanation",
+                        "languages": languages,
+                        "callback": setValue,
+                        "editingField": editingField,
+                        "setEditingField": setEditingField
+                      })}
+                    </FormGroup>
+                  </FormControl>
 
 
-                  {getEditableItems({
-                    "item": character,
-                    "field": "description",
-                    "placeholder": "Optional short further explanation",
-                    "languages": languages,
-                    "callback": setValue,
-                    "editingField": editingField,
-                    "setEditingField": setEditingField
-                  })}
+                  <FormControl component="fieldset" variant="standard" fullWidth>
+                    <FormLabel component="legend">Description ID</FormLabel>
+                    <FormGroup>
+                      {getEditableItems({
+                        "item": character,
+                        "field": "descriptionUrl",
+                        "placeholder": "The ID of a page at NBIC",
+                        "languages": languages,
+                        "callback": setValue,
+                        "editingField": editingField,
+                        "setEditingField": setEditingField
+                      })}
+                    </FormGroup>
+                  </FormControl>
+                </CardContent>
 
-                  {getEditableItems({
-                    "item": character,
-                    "field": "descriptionUrl",
-                    "placeholder": "Provide an ID",
-                    "languages": languages,
-                    "callback": setValue,
-                    "editingField": editingField,
-                    "setEditingField": setEditingField
-                  })}
+                <CardContent>
+                  <States clavis={clavis} character={character} newImage={newImage} replaceItem={replaceAndFilter} deleteItem={deleteItem} mediaElements={mediaElements} />
                 </CardContent>
                 <CardContent>
                   <FormLabel component="legend">Logical requirement</FormLabel>
@@ -198,6 +232,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
                     })}
 
                   </Select>
+                  <FormHelperText>A state that has to be true before this character can be asked about.</FormHelperText>
 
                 </CardContent>
                 <CardContent>
@@ -205,12 +240,25 @@ function Characters({ characters, statements, mediaElements, languages, newImage
                     <FormGroup>
                       <FormControlLabel control={<Switch id={character.id + "_nonexclusive"} key={character.id + "_nonexclusive"} onChange={(e) => { setValue("type", character, false, e.target.checked ? "non-exclusive" : undefined) }} checked={character.type === "non-exclusive"} />} label="Non-exclusive" />
                     </FormGroup>
-                    <FormHelperText>Whether multiple states can be true simultaneously.</FormHelperText>
+                    <FormHelperText>Whether multiple states can be true simultaneously for this character.</FormHelperText>
                   </FormControl>
                 </CardContent>
+
+
                 <CardContent>
-                  <States character={character} statements={statements} languages={languages} mediaElements={mediaElements} newImage={newImage} replaceItem={replaceCharacter} deleteItem={deleteItem} />
+
+                  <IconButton aria-label="delete" color={removing === character ? "error" : "default"}
+                    onClick={() => {
+                      if (removing === character) {
+                        remove(character)
+                      }
+                      else {
+                        setRemoving(character)
+                      }
+                    }} variant="contained" style={{ float: "right" }}><DeleteIcon />{removing === character ? "Are you sure?" : ""}</IconButton>
                 </CardContent>
+
+
               </FormControl>
             </AccordionDetails>
           </Accordion >
@@ -244,11 +292,11 @@ function Characters({ characters, statements, mediaElements, languages, newImage
             ),
           }}
           placeholder="Search by characters and states"
-          onChange={(e) => { setFiltered(search(deepClone(characters), e.target.value)) }}
+          onChange={(e) => { setSearchString(e.target.value); setFiltered(search(deepClone(characters), e.target.value)) }}
         />
       }
 
-      {!languages.length && <Alert severity="error">Add at least one language first under "General information".</Alert>}
+      {!languages.length && <Alert severity="error">Choose a main language first under "General information".</Alert>}
 
       {!!languages.length && !characters.length &&
         <p>No characters yet, click below to add some.</p>
@@ -265,7 +313,9 @@ function Characters({ characters, statements, mediaElements, languages, newImage
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {filtered.map((char, index) => renderCharacter(char, index))}
+              {!!filtered && filtered
+              .concat(newItem ? [newItem] : [])
+              .map((char, index) => renderCharacter(char, index))}
               {provided.placeholder}
             </div>
           )}
@@ -280,7 +330,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
         <ImageSelector callback={addImage} newImage={newImage} />
       }
 
-      {!!newItem &&
+      {/* {!!newItem &&
         <Dialog open={true}>
           <DialogTitle>Add character</DialogTitle>
           <DialogContent>
@@ -302,7 +352,7 @@ function Characters({ characters, statements, mediaElements, languages, newImage
             <Button onClick={() => { addCharacter() }}>Add</Button>
           </DialogActions>
         </Dialog>
-      }
+      } */}
     </div>
 
 
