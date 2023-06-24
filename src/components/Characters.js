@@ -11,10 +11,13 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 
 import {
   CardContent, IconButton, Avatar, Alert, Accordion, AccordionSummary, FormGroup, FormControlLabel, Switch, InputAdornment,
-  TextField, FormControl, Fab, AlertTitle, AccordionDetails, FormLabel, Select, MenuItem, FormHelperText,
+  TextField, FormControl, Fab, AlertTitle, AccordionDetails, FormLabel, Select, MenuItem, FormHelperText, ButtonGroup, Button,
+  Paper, Popper, MenuList, Grow, ClickAwayListener
 } from "@mui/material";
 import { search, getBestString, getImgSrc, deepClone, getEditableItems, reorder, getDraggableItemStyle } from "../Utils"
 
@@ -131,6 +134,89 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
     replaceAndFilter(items)
   }
 
+  const SplitButton = () => {
+    const options = ['Multiple choice', 'Numerical'];
+    const [open, setOpen] = React.useState(false);
+    const anchorRef = React.useRef(null);
+    const [selectedIndex, setSelectedIndex] = React.useState(0);
+  
+    const handleClick = () => {
+      console.info(`You clicked ${options[selectedIndex]}`);
+    };
+  
+    const handleMenuItemClick = (event, index) => {
+      setSelectedIndex(index);
+      setOpen(false);
+    };
+  
+    const handleToggle = () => {
+      setOpen((prevOpen) => !prevOpen);
+    };
+  
+    const handleClose = (event) => {
+      if (anchorRef.current && anchorRef.current.contains(event.target)) {
+        return;
+      }
+  
+      setOpen(false);
+    };
+  
+    return (
+      <React.Fragment>
+        <ButtonGroup variant="contained" ref={anchorRef} aria-label="split button">
+          <Button onClick={handleClick}>{options[selectedIndex]}</Button>
+          <Button
+            size="small"
+            aria-controls={open ? 'split-button-menu' : undefined}
+            aria-expanded={open ? 'true' : undefined}
+            aria-label="select merge strategy"
+            aria-haspopup="menu"
+            onClick={handleToggle}
+          >
+            <ArrowDropDownIcon />
+          </Button>
+        </ButtonGroup>
+        <Popper
+          sx={{
+            zIndex: 1,
+          }}
+          open={open}
+          anchorEl={anchorRef.current}
+          role={undefined}
+          transition
+          disablePortal
+        >
+          {({ TransitionProps, placement }) => (
+            <Grow
+              {...TransitionProps}
+              style={{
+                transformOrigin:
+                  placement === 'bottom' ? 'center top' : 'center bottom',
+              }}
+            >
+              <Paper>
+                <ClickAwayListener onClickAway={handleClose}>
+                  <MenuList id="split-button-menu" autoFocusItem>
+                    {options.map((option, index) => (
+                      <MenuItem
+                        key={option}
+                        disabled={index === 2}
+                        selected={index === selectedIndex}
+                        onClick={(event) => handleMenuItemClick(event, index)}
+                      >
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </MenuList>
+                </ClickAwayListener>
+              </Paper>
+            </Grow>
+          )}
+        </Popper>
+      </React.Fragment>
+    );
+  }
+
   const renderCharacter = (character, index) => {
     let media = "";
 
@@ -153,7 +239,7 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
           )}
         >
           <Accordion expanded={expandedItem === character.id} onChange={() => toggleExpansion(character.id)}>
-            <AccordionSummary {...provided.dragHandleProps} expandIcon={<ExpandMoreIcon />} style={{ backgroundColor: '#455a6433'}}>
+            <AccordionSummary {...provided.dragHandleProps} expandIcon={<ExpandMoreIcon />} style={{ backgroundColor: '#455a6433' }}>
               <h3>
                 <IconButton ><DragIndicatorIcon /></IconButton> {getBestString(character["title"])}
               </h3>
@@ -314,8 +400,8 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
               ref={provided.innerRef}
             >
               {!!filtered && filtered
-              .concat(newItem ? [newItem] : [])
-              .map((char, index) => renderCharacter(char, index))}
+                .concat(newItem ? [newItem] : [])
+                .map((char, index) => renderCharacter(char, index))}
               {provided.placeholder}
             </div>
           )}
@@ -323,7 +409,11 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
       </DragDropContext>
 
       {!!languages.length &&
-        <Fab color="primary" aria-label="add character" onClick={createCharacter}><AddIcon /></Fab>
+        <SplitButton />
+
+
+
+        // <Fab color="primary" aria-label="add character" onClick={createCharacter}><AddIcon /></Fab>
       }
 
       {!!addingImageTo &&

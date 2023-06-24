@@ -207,7 +207,6 @@ function App() {
       return replaceItem(character)
     }
     else if (item["id"].split(":")[0] === "taxon") {
-      console.log(item)
       let taxa = deepClone(c.taxa)
       c.taxa = replaceTaxon(item, taxa)
       setClavis(c)

@@ -62,13 +62,13 @@ function MenuBar() {
           <ListItemIcon>
             <BackupTableIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Tabular</ListItemText>
+          <ListItemText>Statements</ListItemText>
         </MenuItem>
         <MenuItem text="Tabular" onClick={() => navigate('/taxonview')} >
           <ListItemIcon>
             <YardIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Taxon view</ListItemText>
+          <ListItemText>Per taxon</ListItemText>
         </MenuItem>
         <MenuItem text="Translations" onClick={() => navigate('/translations')} >
           <ListItemIcon>

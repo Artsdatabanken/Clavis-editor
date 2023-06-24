@@ -94,7 +94,7 @@ function TabularView({ clavis, replaceItem, deleteItem, languages }) {
     }
 
     const deleteStatements = () => {
-        replaceItem(deleteItem(currentStatements))
+        replaceItem(deleteItem(currentStatements), "statements")
         setCurrentStatements([])
         setStatementsAreNew(false)
     }
