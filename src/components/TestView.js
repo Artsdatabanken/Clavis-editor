@@ -1,6 +1,7 @@
 
 import * as React from "react";
-import Identification from "../Clavis-player/src/components/Identification"
+import {ClavisViewer} from "@artsdatabanken/clavis-viewer-web";
+
 import { deepClone } from "../Utils";
 
 function TestView({ clavis }) {
@@ -9,7 +10,7 @@ function TestView({ clavis }) {
 
     return (
         <div className="testview">
-            <Identification clavis={workingClavis} />
+            <ClavisViewer clavis={workingClavis} />
         </div>
     );
 }

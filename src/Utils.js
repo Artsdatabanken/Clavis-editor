@@ -1,13 +1,13 @@
 import React from "react";
 import { TextField, InputAdornment, IconButton } from "@mui/material";
-import CheckIcon from '@mui/icons-material/Check';
-
+import CheckIcon from "@mui/icons-material/Check";
+import { v4 as uuidv4 } from "uuid";
 
 export const languageNames = {
-  "en": "English",
-  "nb": "Bokmål",
-  "nn": "Nynorsk"
-}
+  en: "English",
+  nb: "Bokmål",
+  nn: "Nynorsk",
+};
 
 export const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
@@ -20,7 +20,7 @@ export const reorder = (list, startIndex, endIndex) => {
 export const getDraggableItemStyle = (isDragging, draggableStyle) => ({
   userSelect: "none",
   marginBottom: 4,
-  ...draggableStyle
+  ...draggableStyle,
 });
 
 export const taxonNames = [
@@ -32,148 +32,402 @@ export const taxonNames = [
   "family",
   "genus",
   "species",
-  "subspecies"
-]
-
+  "subspecies",
+];
 
 export const getImgSrc = (mediaElement, width, height) => {
   if (!mediaElement) {
-    return ""
+    return "";
   }
 
   if (mediaElement["mediaElement"]["file"]["url"]["externalId"]) {
-    return "https://www.artsdatabanken.no/Media/" + mediaElement["mediaElement"]["file"]["url"]["externalId"] + "?mode=" + parseInt(width) + "x" + parseInt(height)
+    return (
+      "https://www.artsdatabanken.no/Media/" +
+      mediaElement["mediaElement"]["file"]["url"]["externalId"] +
+      "?mode=" +
+      parseInt(width) +
+      "x" +
+      parseInt(height)
+    );
   }
 
   if (mediaElement["mediaElement"]["file"]["url"].includes("/")) {
-    return mediaElement["mediaElement"]["file"]["url"]
+    return mediaElement["mediaElement"]["file"]["url"];
   }
-  return ""
-}
+  return "";
+};
 
 export const getBestString = (ob) => {
-  if (typeof (ob) === "string") {
-    return ob
+  if (typeof ob === "string") {
+    return ob;
   }
 
-  return !!ob ? ob.en || ob.nb || ob.nn || "" : ""
-}
-
-
+  return !!ob ? ob.en || ob.nb || ob.nn || "" : "";
+};
 
 export const flattenTaxa = (taxa, level = " ") => {
-  let returning = []
-  taxa.forEach(taxon => {
-    let t = deepClone(taxon)
-    t["children"] = undefined
-    t["level"] = level
-    returning.push(t)
+  let returning = [];
+  taxa.forEach((taxon) => {
+    let t = deepClone(taxon);
+    t["children"] = undefined;
+    t["level"] = level;
+    returning.push(t);
     if (taxon["children"] && taxon["children"].length) {
-      returning = [...returning, ...flattenTaxa(taxon["children"], ("│ " + level).replaceAll('│  ', '└─ '))]
+      returning = [
+        ...returning,
+        ...flattenTaxa(
+          taxon["children"],
+          ("│ " + level).replaceAll("│  ", "└─ ")
+        ),
+      ];
     }
-  })
+  });
   return returning;
-}
+};
 
-export const getLanguageInput = (item, field, placeholder, l, required, handleChange, service, doneCallback) => {
+export const getTaxon = (taxa, taxonId) => {
+  for (let index = 0; index < taxa.length; index++) {
+    const taxon = taxa[index];
+    if (taxon["id"] === taxonId) {
+      return taxon;
+    }
+    if (taxon["children"] && taxon["children"].length) {
+      const childTaxon = getTaxon(taxon["children"], taxonId);
+      if (childTaxon) {
+        return childTaxon;
+      }
+    }
+  }
+  return undefined;
+};
 
-  let endAdornment
-  if (doneCallback) {
-    endAdornment = <InputAdornment position="end"><IconButton onClick={doneCallback} ><CheckIcon /></IconButton></InputAdornment>
+export const cleanStatements = (clavis) => {
+  console.log("Cleaning statements...");
+
+  let warnings = [];
+
+  const findState = (characterId, stateId) => {
+    let character = clavis["characters"].find((c) => c.id === characterId);
+    if (!character) return false;
+
+    let state = character["states"].find((s) => s.id === stateId);
+    if (!state) return false;
+
+    return true;
+  };
+
+  // const getParents = (taxonId, taxa = false, parents = []) => {
+  //   if (!taxa) taxa = clavis["taxa"];
+
+  //   let taxon = taxa.find((t) => t.id === taxonId);
+  //   if (!!taxon) return [];
+
+  //   for (let taxonIndex = 0; taxonIndex < taxa.length; taxonIndex++) {
+  //     if (taxa[taxonIndex].hasOwnProperty("children")) {
+  //       let newParents = getParents(taxonId, taxa[taxonIndex]["children"]);
+  //       if (newParents !== false) {
+  //         return [...parents, taxa[taxonIndex]["id"], ...newParents];
+  //       }
+  //     }
+  //   }
+
+  //   return false;
+  // };
+
+  let statements = clavis["statements"];
+
+  for (let i = 0; i < statements.length; i++) {
+    let statement = statements[i];
+
+    // add a new ID to each statement
+    statement.id = "statement:" + uuidv4().replaceAll("-", "");
+    statements[i] = statement;
+
+    // remove any statements that don't have a frequency
+    if (!statement.hasOwnProperty("frequency")) {
+      statements.splice(i, 1);
+      // console.log("Removed statement " + i + ": no frequency");
+      i--;
+      continue;
+    }
+
+    // remove any statements that refer to non-existent characters or states
+    if (!findState(statement["character"], statement["value"])) {
+      statements.splice(i, 1);
+      // console.log("Removed statement " + i + ": no such state");
+      i--;
+      continue;
+    }
+
+    // remove any statements that refer to non-existent taxa
+    if (!getTaxon(clavis.taxa, statements[i]["taxon"])) {
+      statements.splice(i, 1);
+      // console.log("Removed statement " + i + ": no such taxon");
+      i--;
+      continue;
+    }
+
+    // remove any duplicate statements
+    for (let j = i + 1; j < statements.length; j++) {
+      if (
+        statements[j]["value"] === statement["value"] &&
+        statements[j]["taxon"] === statement["taxon"]
+      ) {
+        if (statements[j]["frequency"] !== statement["frequency"]) {
+          let taxon = getTaxon(clavis.taxa, statement["taxon"]);
+          console.log(
+            "Warning: removing last added  out of two statements for " +
+              taxon.scientificName +
+              " with different frequencies"
+          );
+          let character = clavis.characters.find(
+            (c) => c.id === statement["character"]
+          );
+          let state = character.states.find((s) => s.id === statement["value"]);
+
+          console.log("Character: " + character.title?.nb);
+          console.log("State: " + state.title?.nb);
+          console.log("Keeping frequency: " + statements[j]["frequency"]);
+          console.log("Removing frequency: " + statement["frequency"]);
+
+          warnings.push(
+            "Warning: " +
+              taxon.scientificName +
+              ' had conflicting statements for "' +
+              character.title?.nb +
+              '": "' +
+              state.title?.nb +
+              '". It is now set to the following, check if this is correct:'
+          );
+
+          warnings.push(getStatementIcon(statements[j]["frequency"]));
+
+          statements.splice(i, 1);
+          i--;
+          j--;
+        } else {
+          // console.log(statements[j]["value"] + " === " + statement["value"]);
+          // console.log(statements[j]["taxon"] + " === " + statement["taxon"]);
+          console.log("Removed statement " + j + ": duplicate");
+          statements.splice(j, 1);
+          j--;
+        }
+      }
+    }
+
+    // remove any statements for taxa that have a parent with a statement with the same value (as long as it has a frequency)
+    // let parents = getParents(statements[i]["taxon"]);
+    // if (parents.length > 0) {
+    //   for (let j = 0; j < parents.length; j++) {
+    //     let parent = parents[j];
+    //     let parentStatement = statements.find(
+    //       (s) => s.taxon === parent && s.value === statement["value"]
+    //     );
+    //     if (
+    //       !!parentStatement &&
+    //       parentStatement.hasOwnProperty("frequency")
+    //     ) {
+    //       if (statement["frequency"] === parentStatement["frequency"]) {
+    //         statements.splice(i, 1);
+
+    //         console.log(
+    //           "Removed statement for " +
+    //             statement["value"] +
+    //             ", " +
+    //             statement["taxon"] +
+    //             " and its parent " +
+    //             parentStatement["taxon"] +
+    //             " have same frequency"
+    //         );
+
+    //         i--;
+    //         if (j < i) i--;
+    //       }
+    //       else {
+    //         console.log(
+    //           "Keeping statement for " +
+    //             statement["value"] +
+    //             ", " +
+    //             statement["taxon"] +
+    //             " and its parent " +
+    //             parentStatement["taxon"] +
+    //             " have different frequencies"
+    //         );
+    //       }
+    //     }
+    //   }
+    // }
   }
 
+  // copy each statement to children, unless it already has a statement, and remove. Now only childless taxa have statements
+  // console.log("Moving statements to children...");
+  // for (
+  //   let statementIndex = 0;
+  //   statementIndex < statements.length;
+  //   statementIndex++
+  // ) {
+  //   let statement = statements[statementIndex];
+  //   let taxon = findTaxon(statement["taxon"]);
 
-  return <TextField
-    sx={{ m: 1 }}
-    fullWidth
-    label={required ? "Required" : ""}
-    InputProps={{
-      endAdornment: endAdornment
-    }}
-    key={item["id"] + "-" + field + "-" + l}
-    id={"key-" + field + "-" + l}
-    placeholder={placeholder}
-    onChange={(e) => { handleChange(field, item, l, e.target.value, service) }}
-    onKeyDown={(e) => {
-      if ((e.key === "Enter" || e.key === "Escape") && doneCallback) { doneCallback({}) }
-    }}
-    value={
-      (field in item && l in item[field])
-        ?
-        (!!service ? item[field][l]["externalId"] : item[field][l])
-        :
-        ""}
-  />;
-}
+  //   if(statementIndex % 100 === 0) console.log("... " + statementIndex + " / " + statements.length);
 
+  //   if (!taxon.hasOwnProperty("children") || taxon["children"].length === 0)
+  //     continue;
+
+  //   for (
+  //     let childIndex = 0;
+  //     childIndex < taxon["children"].length;
+  //     childIndex++
+  //   ) {
+  //     let child = taxon["children"][childIndex];
+  //     let childStatement = statements.find(
+  //       (s) => s.taxon === child["id"] && s.value === statement["value"]
+  //     );
+
+  //     if (!childStatement) {
+  //       childStatement = deepClone(statement);
+  //       childStatement["id"] = "statement:" + uuidv4().replaceAll("-", "");
+  //       statements.push(childStatement);
+  //     }
+  //   }
+
+  //   statements.splice(statementIndex, 1);
+  //   statementIndex--;
+  // }
+  console.log("... done");
+
+  return {
+    statements: statements,
+    warnings: warnings,
+  };
+};
+
+export const getLanguageInput = (
+  item,
+  field,
+  placeholder,
+  l,
+  required,
+  handleChange,
+  service,
+  doneCallback
+) => {
+  let endAdornment;
+  if (doneCallback) {
+    endAdornment = (
+      <InputAdornment position="end">
+        <IconButton onClick={doneCallback}>
+          <CheckIcon />
+        </IconButton>
+      </InputAdornment>
+    );
+  }
+
+  return (
+    <TextField
+      sx={{ m: 1 }}
+      fullWidth
+      label={required ? "Required" : ""}
+      InputProps={{
+        endAdornment: endAdornment,
+      }}
+      key={item["id"] + "-" + field + "-" + l}
+      id={"key-" + field + "-" + l}
+      placeholder={placeholder}
+      onChange={(e) => {
+        handleChange(field, item, l, e.target.value, service);
+      }}
+      onKeyDown={(e) => {
+        if ((e.key === "Enter" || e.key === "Escape") && doneCallback) {
+          doneCallback({});
+        }
+      }}
+      value={
+        field in item && l in item[field]
+          ? !!service
+            ? item[field][l]["externalId"]
+            : item[field][l]
+          : ""
+      }
+    />
+  );
+};
 
 export const getEditableItems = (props) => {
-  return propsToField(props, props.languages[0])
-}
-
+  return propsToField(props, props.languages[0]);
+};
 
 export const getEditingItems = (props) => {
   return props.languages.map((l) => {
-    return propsToField(props, l)
-  })
-}
-
-
-
-
-
+    return propsToField(props, l);
+  });
+};
 
 const propsToField = (props, l) => {
-  return getLanguageInput(props.item, props.field, props.placeholder, l, props.required, props.callback, props.service, props.setEditingField)
-}
-
-
+  return getLanguageInput(
+    props.item,
+    props.field,
+    props.placeholder,
+    l,
+    props.required,
+    props.callback,
+    props.service,
+    props.setEditingField
+  );
+};
 
 export const search = (items, value) => {
-
   if (!value) {
-    return items
+    return items;
+  } else {
+    return items.filter(
+      (i) => JSON.stringify(i).toLowerCase().indexOf(value.toLowerCase()) > -1
+    );
   }
-  else {
-    return items.filter(i => JSON.stringify(i).toLowerCase().indexOf(value.toLowerCase()) > -1)
-  }
-}
+};
 
 export const deepClone = (item) => {
   if (!item) {
-    return item
+    return item;
   }
-  return JSON.parse(JSON.stringify(item))
-}
+  return JSON.parse(JSON.stringify(item));
+};
 
-
-export const changeStatement = (statements, statetmentId, frequency, character) => {
-
-  let taxonId = 0
+export const changeStatement = (
+  statements,
+  statetmentId,
+  frequency,
+  character
+) => {
+  let taxonId = 0;
 
   // Set the character
-  statements = statements.map(statement => {
+  statements = statements.map((statement) => {
     if (statement.id === statetmentId) {
-      statement.frequency = frequency
-      taxonId = statement.taxon
+      statement.frequency = frequency;
+      taxonId = statement.taxon;
     }
-    return statement
-  })
+    return statement;
+  });
 
   // If the character is non-exclusive, the rest is not affected and we return as is
   if (character.type === "non-exclusive") {
-    return statements
+    return statements;
   }
 
   // Otherwise, they are mutually exclusive
   // If the new frequency is 1, all others are 0
   if (frequency === 1) {
-    return statements.map(statement => {
-      if (statement.character === character.id && statement.taxon === taxonId && statement.id !== statetmentId) {
-        statement.frequency = 0
+    return statements.map((statement) => {
+      if (
+        statement.character === character.id &&
+        statement.taxon === taxonId &&
+        statement.id !== statetmentId
+      ) {
+        statement.frequency = 0;
       }
-      return statement
-    })
+      return statement;
+    });
   }
   // If the new frequency is 0, and there is one other, that other has to be 1
   else if (frequency === 0 && character.states.length === 2) {
@@ -181,83 +435,144 @@ export const changeStatement = (statements, statetmentId, frequency, character) 
     for (let index = 0; index < statements.length; index++) {
       const statement = statements[index];
 
-      if (statement.character === character.id && statement.taxon === taxonId && statement.id !== statetmentId) {
-        statements[index].frequency = 1
-        break
+      if (
+        statement.character === character.id &&
+        statement.taxon === taxonId &&
+        statement.id !== statetmentId
+      ) {
+        statements[index].frequency = 1;
+        break;
       }
     }
-    return statements
+    return statements;
   }
   // If the new frequency is 0, and there are 2 or more others but they are all zero, delete those others
-  else if (frequency === 0 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency !== 0)).length === 0) {
-
-    return statements.map(s => {
-      if (s.character === character.id && s.taxon === taxonId && s.id !== statetmentId) {
-        s.frequency = undefined
+  else if (
+    frequency === 0 &&
+    statements.filter(
+      (s) =>
+        s.character === character.id && s.taxon === taxonId && s.frequency !== 0
+    ).length === 0
+  ) {
+    return statements.map((s) => {
+      if (
+        s.character === character.id &&
+        s.taxon === taxonId &&
+        s.id !== statetmentId
+      ) {
+        s.frequency = undefined;
       }
-      return s
-    })
+      return s;
+    });
   }
   // If the frequency is >0 and <1, and there is one other, that needs to be the reverse
   else if (frequency > 0 && frequency < 1 && character.states.length === 2) {
     // for loop is more efficient as we want to break when finding the right one
     for (let index = 0; index < statements.length; index++) {
       const statement = statements[index];
-      if (statement.character === character.id && statement.taxon === taxonId && statement.id !== statetmentId) {
-        statements[index].frequency = 1.0 - frequency
-        break
+      if (
+        statement.character === character.id &&
+        statement.taxon === taxonId &&
+        statement.id !== statetmentId
+      ) {
+        statements[index].frequency = 1.0 - frequency;
+        break;
       }
     }
-    return statements
+    return statements;
   }
   // If the frequency is >0 and <1, there can be no siblings with frequency 1, so make those the reverse
-  else if (frequency > 0 && frequency < 1 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 1)).length > 0) {
-    return statements.map(s => {
-      if ((s.character === character.id && s.taxon === taxonId && s.frequency === 1)) {
-        s.frequency = 1.0 - frequency
+  else if (
+    frequency > 0 &&
+    frequency < 1 &&
+    statements.filter(
+      (s) =>
+        s.character === character.id && s.taxon === taxonId && s.frequency === 1
+    ).length > 0
+  ) {
+    return statements.map((s) => {
+      if (
+        s.character === character.id &&
+        s.taxon === taxonId &&
+        s.frequency === 1
+      ) {
+        s.frequency = 1.0 - frequency;
       }
-      return s
-    })
+      return s;
+    });
   }
   // If the frequency is >0 and <1, not all others can be 0, so nullify them if this is the case
-  else if (frequency > 0 && frequency < 1 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 0)).length === character.states.length - 1) {
-    return statements.map(s => {
-      if ((s.character === character.id && s.taxon === taxonId && s.frequency === 0)) {
-        s.frequency = undefined
+  else if (
+    frequency > 0 &&
+    frequency < 1 &&
+    statements.filter(
+      (s) =>
+        s.character === character.id && s.taxon === taxonId && s.frequency === 0
+    ).length ===
+      character.states.length - 1
+  ) {
+    return statements.map((s) => {
+      if (
+        s.character === character.id &&
+        s.taxon === taxonId &&
+        s.frequency === 0
+      ) {
+        s.frequency = undefined;
       }
-      return s
-    })
+      return s;
+    });
   }
   // If the frequenct is 0 and all but one siblings are also 0, the last one has to be 1
-  else if (frequency === 0 && statements.filter(s => (s.character === character.id && s.taxon === taxonId && s.frequency === 0)).length === character.states.length - 1) {
+  else if (
+    frequency === 0 &&
+    statements.filter(
+      (s) =>
+        s.character === character.id && s.taxon === taxonId && s.frequency === 0
+    ).length ===
+      character.states.length - 1
+  ) {
     // for loop is more efficient as we want to break when finding the right one
     for (let index = 0; index < statements.length; index++) {
       const statement = statements[index];
-      if (statement.character === character.id && statement.taxon === taxonId && statement.frequency !== 0) {
-        statements[index].frequency = 1
-        break
+      if (
+        statement.character === character.id &&
+        statement.taxon === taxonId &&
+        statement.frequency !== 0
+      ) {
+        statements[index].frequency = 1;
+        break;
       }
     }
-    return statements
+    return statements;
   }
 
   // Otherwise, it is a special case somehow
-  console.warn("No logic found for sibling statements")
-  return statements
-}
+  console.warn("No logic found for sibling statements");
+  return statements;
+};
 
-export const getStatementIcon = freq => {
-  const alwaysIcon = <span role="img" aria-label="Checkmark">✅</span>
-  const sometimesIcon = <span role="img" aria-label="Checkmark">🟨</span>
-  const neverIcon = <span role="img" aria-label="Checkmark">❌</span>
+export const getStatementIcon = (freq) => {
+  const alwaysIcon = (
+    <span role="img" aria-label="Checkmark">
+      ✅
+    </span>
+  );
+  const sometimesIcon = (
+    <span role="img" aria-label="Checkmark">
+      🟨
+    </span>
+  );
+  const neverIcon = (
+    <span role="img" aria-label="Checkmark">
+      ❌
+    </span>
+  );
   if (freq === 1) {
-    return alwaysIcon
+    return alwaysIcon;
+  } else if (freq === 0) {
+    return neverIcon;
+  } else if (freq > 0) {
+    return sometimesIcon;
   }
-  else if (freq === 0) {
-    return neverIcon
-  }
-  else if (freq > 0) {
-    return sometimesIcon
-  }
-  return ""
-}
+  return "";
+};

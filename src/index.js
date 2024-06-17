@@ -6,11 +6,7 @@ import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  // ---- Current version of react-beautiful-dnd is not compatible with strict mode
-  // TODO: check if this can be re-enabled
-  // <React.StrictMode>
     <App />
-  // </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -1,5 +1,5 @@
 # Clavis editor
 
-As running on clavis.no, used to make identification keys in the Clavis format.
+As running on clavis.no, used to make identification keys in the [Clavis](https://github.com/Artsdatabanken/Clavis) format.
 
-The Clavis player used within this code is available on https://github.com/Artsdatabanken/Clavis-player
+Uses the [Clavis web viewer](https://github.com/Artsdatabanken/Clavis-viewer-web) as a dependency for key testing.

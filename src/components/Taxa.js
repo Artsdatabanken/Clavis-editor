@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
@@ -16,12 +16,18 @@ import { deepClone, getBestString, getEditableItems, getImgSrc, reorder, getDrag
 import TaxonSelector from "./TaxonSelector";
 import ImageSelector from "./ImageSelector";
 
-function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteItem }) {
+function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteItem, filterStatements }) {
   const [addingImageTo, setAddingImageTo] = useState(false);
   const [editingField, setEditingField] = useState({});
   const [addingSubtaxon, setAddingSubtaxon] = useState(false);
   const [removing, setRemoving] = useState(false);
 
+  useEffect(() => {
+    console.log("Mounted");
+    return () => {
+      console.log("Unmounted");
+    }
+  }, []);
 
   const addTaxon = (taxon, parent) => {
     if (parent) {
@@ -105,7 +111,7 @@ function Taxa({ taxa, mediaElements, languages, newImage, replaceItem, deleteIte
   }
 
   const remove = (item) => {
-    replaceItem(deleteItem(item), "taxa")
+    deleteItem(item)
   }
 
   // Sets or adds the value of a field in the character. Can have a language and/or an external service
