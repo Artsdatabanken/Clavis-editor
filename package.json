@@ -1,26 +1,26 @@
 {
-  "name": "editor_newnode",
+  "name": "clavis_editor",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@artsdatabanken/clavis-viewer-web": "^1.0.0",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.18",
-    "@mui/material": "^5.14.18",
-    "@mui/x-tree-view": "^6.17.0",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.6.2",
-    "moment": "^2.29.4",
-    "react": "^18.2.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.20",
+    "@mui/material": "^5.15.20",
+    "@mui/x-tree-view": "^7.7.0",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "axios": "^1.7.2",
+    "moment": "^2.30.1",
+    "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.20.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "react-router-dom": "^6.23.1",
+    "react-scripts": "^5.0.1",
+    "web-vitals": "^4.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -45,5 +45,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-private-property-in-object": "^7.24.7"
   }
 }
