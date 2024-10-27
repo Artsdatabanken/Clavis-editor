@@ -65,19 +65,53 @@ export const getBestString = (ob) => {
   return !!ob ? ob.en || ob.nb || ob.nn || "" : "";
 };
 
-export const flattenTaxa = (taxa, level = " ") => {
+export const flattenTaxa = (taxa, level = " ", as_list = false, ancestry = [], parent) => {
   let returning = [];
   taxa.forEach((taxon) => {
     let t = deepClone(taxon);
+
+    if (!t.scientificName && parent) {
+      t.scientificName = parent.scientificName
+    }
+
+    if (!t.scientificName && parent) {
+      t.scientificName = parent.scientificName
+    }
+
+    if (!t.externalReference && parent) {
+      t.externalReference = parent.externalReference
+    }
+
+    if (!t.media && parent) {
+      t.media = parent.media
+    }
+
+    if (!t.descriptionUrl && parent) {
+      t.descriptionUrl = parent.descriptionUrl
+    }
+
+
     t["children"] = undefined;
-    t["level"] = level;
-    returning.push(t);
+    if (!as_list) {
+      t["level"] = level;
+    }
+
+    if (!as_list || !taxon["children"] || taxon["children"].length === 0) {
+      if (as_list) {
+        t["ancestry"] = [...ancestry, taxon["id"]];
+      }
+      returning.push(t);
+    }
+    
     if (taxon["children"] && taxon["children"].length) {
       returning = [
         ...returning,
         ...flattenTaxa(
           taxon["children"],
-          ("│ " + level).replaceAll("│  ", "└─ ")
+          ("│ " + level).replaceAll("│  ", "└─ "),
+          as_list,
+          [...ancestry, taxon["id"]],
+          t
         ),
       ];
     }

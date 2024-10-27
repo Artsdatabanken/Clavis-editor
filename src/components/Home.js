@@ -43,16 +43,15 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
         let personId = newPerson();
         clavis["creator"] = personId;
         if (!clavis.persons) {
-            clavis["persons"] = [
-              {
-                id: personId,
-                name: {},
-              },
-            ];
-          }
+          clavis["persons"] = [
+            {
+              id: personId,
+              name: {},
+            },
+          ];
+        }
       }
 
-      
       clavis["persons"].map((p) => {
         if (p["id"] === clavis["creator"]) {
           p["name"][language] = value;
@@ -81,9 +80,10 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
 
   const getLanguageInput = (name, placeholder, l, required) => {
     let value = "";
-    if (name in clavis) {
-      if (name === "geography") value = clavis["geography"]["name"][l];
-      else if (name === "descriptionUrl" && clavis["descriptionUrl"][l])
+    if (clavis[name]) {
+      if (name === "geography") {
+        value = clavis["geography"]["name"][l];
+      } else if (name === "descriptionUrl" && clavis["descriptionUrl"][l])
         value = clavis["descriptionUrl"][l]["externalId"];
       else if (name === "creator" && clavis["persons"])
         value = clavis["persons"].filter(
