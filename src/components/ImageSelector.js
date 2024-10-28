@@ -59,7 +59,7 @@ function ImageSelector({ callback, scientificNameId, newImage }) {
               {imageSuggestions["images"].map(i => {
                 return <Avatar
                   sx={{ width: 64, height: 64 }}
-                  src={i["url"].replace("file/", "Media/F") + "?mode=128x128"}
+                  src={"https://artsdatabanken.no/" + i["url"].replace("file/", "Media/F") + "?mode=128x128"}
                   onClick={() => { addImage("F" + i["url"].split("/").pop()); }} />
               })}
             </div>
