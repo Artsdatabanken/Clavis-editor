@@ -150,24 +150,6 @@ export const cleanStatements = (clavis) => {
     return true;
   };
 
-  // const getParents = (taxonId, taxa = false, parents = []) => {
-  //   if (!taxa) taxa = clavis["taxa"];
-
-  //   let taxon = taxa.find((t) => t.id === taxonId);
-  //   if (!!taxon) return [];
-
-  //   for (let taxonIndex = 0; taxonIndex < taxa.length; taxonIndex++) {
-  //     if (taxa[taxonIndex].hasOwnProperty("children")) {
-  //       let newParents = getParents(taxonId, taxa[taxonIndex]["children"]);
-  //       if (newParents !== false) {
-  //         return [...parents, taxa[taxonIndex]["id"], ...newParents];
-  //       }
-  //     }
-  //   }
-
-  //   return false;
-  // };
-
   let statements = clavis["statements"];
 
   for (let i = 0; i < statements.length; i++) {
@@ -240,94 +222,14 @@ export const cleanStatements = (clavis) => {
           i--;
           j--;
         } else {
-          // console.log(statements[j]["value"] + " === " + statement["value"]);
-          // console.log(statements[j]["taxon"] + " === " + statement["taxon"]);
           console.log("Removed statement " + j + ": duplicate");
           statements.splice(j, 1);
           j--;
         }
       }
     }
-
-    // remove any statements for taxa that have a parent with a statement with the same value (as long as it has a frequency)
-    // let parents = getParents(statements[i]["taxon"]);
-    // if (parents.length > 0) {
-    //   for (let j = 0; j < parents.length; j++) {
-    //     let parent = parents[j];
-    //     let parentStatement = statements.find(
-    //       (s) => s.taxon === parent && s.value === statement["value"]
-    //     );
-    //     if (
-    //       !!parentStatement &&
-    //       parentStatement.hasOwnProperty("frequency")
-    //     ) {
-    //       if (statement["frequency"] === parentStatement["frequency"]) {
-    //         statements.splice(i, 1);
-
-    //         console.log(
-    //           "Removed statement for " +
-    //             statement["value"] +
-    //             ", " +
-    //             statement["taxon"] +
-    //             " and its parent " +
-    //             parentStatement["taxon"] +
-    //             " have same frequency"
-    //         );
-
-    //         i--;
-    //         if (j < i) i--;
-    //       }
-    //       else {
-    //         console.log(
-    //           "Keeping statement for " +
-    //             statement["value"] +
-    //             ", " +
-    //             statement["taxon"] +
-    //             " and its parent " +
-    //             parentStatement["taxon"] +
-    //             " have different frequencies"
-    //         );
-    //       }
-    //     }
-    //   }
-    // }
   }
 
-  // copy each statement to children, unless it already has a statement, and remove. Now only childless taxa have statements
-  // console.log("Moving statements to children...");
-  // for (
-  //   let statementIndex = 0;
-  //   statementIndex < statements.length;
-  //   statementIndex++
-  // ) {
-  //   let statement = statements[statementIndex];
-  //   let taxon = findTaxon(statement["taxon"]);
-
-  //   if(statementIndex % 100 === 0) console.log("... " + statementIndex + " / " + statements.length);
-
-  //   if (!taxon.hasOwnProperty("children") || taxon["children"].length === 0)
-  //     continue;
-
-  //   for (
-  //     let childIndex = 0;
-  //     childIndex < taxon["children"].length;
-  //     childIndex++
-  //   ) {
-  //     let child = taxon["children"][childIndex];
-  //     let childStatement = statements.find(
-  //       (s) => s.taxon === child["id"] && s.value === statement["value"]
-  //     );
-
-  //     if (!childStatement) {
-  //       childStatement = deepClone(statement);
-  //       childStatement["id"] = "statement:" + uuidv4().replaceAll("-", "");
-  //       statements.push(childStatement);
-  //     }
-  //   }
-
-  //   statements.splice(statementIndex, 1);
-  //   statementIndex--;
-  // }
   console.log("... done");
 
   return {
