@@ -135,7 +135,21 @@ export const getTaxon = (taxa, taxonId) => {
   return undefined;
 };
 
-export const cleanStatements = (clavis) => {
+export const cleanClavis = (clavis) => {
+  let cleaningLog = cleanStatements(clavis);
+  let warings = cleaningLog.warnings;
+  clavis["statements"] = cleaningLog.statements;
+
+
+  // cleaningLog = cleanCharacters(clavis);
+  // clavis["characters"] = cleaningLog.characters;
+
+  return {clavis, warings};
+};
+
+
+
+const cleanStatements = (clavis) => {
   console.log("Cleaning statements...");
 
   let warnings = [];

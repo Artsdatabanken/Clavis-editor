@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Card, CardContent, Alert } from "@mui/material";
 import moment from "moment";
 import "../App.css";
-import { cleanStatements, deepClone } from "../Utils";
+import { cleanClavis, deepClone } from "../Utils";
 import { useNavigate } from "react-router-dom";
 import { flattenTaxa } from "../Utils";
 import { v4 as uuidv4 } from "uuid";
@@ -823,8 +823,8 @@ function Files({ clavis, setClavis }) {
   };
 
   const prepareKey = () => {
-    let cleaningLog = cleanStatements(clavis);
-    clavis["statements"] = cleaningLog.statements;
+    clavis = cleanClavis(clavis);
+
     setIsPrepared(true);
   };
 

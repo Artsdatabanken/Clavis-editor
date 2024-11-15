@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Alert } from "@mui/material";
 
-import { getBestString, getTaxon, cleanStatements } from "../Utils";
+import { getBestString, getTaxon, cleanClavis } from "../Utils";
 
 function Analyze({ clavis, setLoadingPage }) {
   const [analysis, setAnalysis] = useState({});
@@ -182,8 +182,8 @@ function Analyze({ clavis, setLoadingPage }) {
   }, [setLoadingPage]);
 
   if (!analysis.cleaned) {
-    let cleaningLog = cleanStatements(clavis)
-    clavis["statements"] = cleaningLog.statements;
+    let cleaningLog = cleanClavis(clavis)
+    clavis = cleaningLog.clavis;
     setCleaningWarnings(cleaningLog.warnings);
     setAnalysis((analysis) => Object.assign({}, analysis, { cleaned: true }));
   }
