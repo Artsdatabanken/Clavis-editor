@@ -29,10 +29,10 @@
     jsonpointer "^5.0.0"
     leven "^3.1.0"
 
-"@artsdatabanken/clavis-viewer-web@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@artsdatabanken/clavis-viewer-web/-/clavis-viewer-web-1.1.1.tgz"
-  integrity sha512-2uwKanfUeAx0ILpvsSO9n/q3Z57s7nZ6ZfNYlArH6qOwltA9v/s42t6LDBZjySmxcfiDg3lPLhRcb7Gd8/NXeA==
+"@artsdatabanken/clavis-viewer-web@^1.1.3":
+  version "1.1.3"
+  resolved "https://registry.npmjs.org/@artsdatabanken/clavis-viewer-web/-/clavis-viewer-web-1.1.3.tgz"
+  integrity sha512-FgF0EChfliLf8wwk9Uh1qPkPt7NoeByPpBs4M/LKeiResZ553P4ZHGqJILPRVj0akQJkY2a9Vbl3NhIpefx3kQ==
   dependencies:
     "@babel/plugin-proposal-unicode-property-regex" "^7.18.6"
     "@emotion/react" "^11.13.3"
