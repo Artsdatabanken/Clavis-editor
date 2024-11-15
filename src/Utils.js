@@ -65,31 +65,36 @@ export const getBestString = (ob) => {
   return !!ob ? ob.en || ob.nb || ob.nn || "" : "";
 };
 
-export const flattenTaxa = (taxa, level = " ", as_list = false, ancestry = [], parent) => {
+export const flattenTaxa = (
+  taxa,
+  level = " ",
+  as_list = false,
+  ancestry = [],
+  parent
+) => {
   let returning = [];
   taxa.forEach((taxon) => {
     let t = deepClone(taxon);
 
     if (!t.scientificName && parent) {
-      t.scientificName = parent.scientificName
+      t.scientificName = parent.scientificName;
     }
 
     if (!t.scientificName && parent) {
-      t.scientificName = parent.scientificName
+      t.scientificName = parent.scientificName;
     }
 
     if (!t.externalReference && parent) {
-      t.externalReference = parent.externalReference
+      t.externalReference = parent.externalReference;
     }
 
     if (!t.media && parent) {
-      t.media = parent.media
+      t.media = parent.media;
     }
 
     if (!t.descriptionUrl && parent) {
-      t.descriptionUrl = parent.descriptionUrl
+      t.descriptionUrl = parent.descriptionUrl;
     }
-
 
     t["children"] = undefined;
     if (!as_list) {
@@ -102,7 +107,7 @@ export const flattenTaxa = (taxa, level = " ", as_list = false, ancestry = [], p
       }
       returning.push(t);
     }
-    
+
     if (taxon["children"] && taxon["children"].length) {
       returning = [
         ...returning,
@@ -140,14 +145,32 @@ export const cleanClavis = (clavis) => {
   let warings = cleaningLog.warnings;
   clavis["statements"] = cleaningLog.statements;
 
+  cleaningLog = cleanCharacters(clavis);
+  clavis["characters"] = cleaningLog.characters;
 
-  // cleaningLog = cleanCharacters(clavis);
-  // clavis["characters"] = cleaningLog.characters;
-
-  return {clavis, warings};
+  return { clavis, warings };
 };
 
+const cleanCharacters = (clavis) => {
+  console.log("Cleaning characters...");
 
+  let characters = clavis["characters"];
+
+  for (let i = 0; i < characters.length; i++) {
+    let character = characters[i];
+    if(character.description) {
+      if(Object.entries(character.description).filter(([key, value]) => value !== "").length === 0) {
+        characters[i].description = undefined;
+      }
+    }
+  }
+
+  console.log("... done");
+
+  return {
+    characters: characters,
+  };
+};
 
 const cleanStatements = (clavis) => {
   console.log("Cleaning statements...");
