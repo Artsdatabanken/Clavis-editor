@@ -451,7 +451,6 @@ function Files({ clavis, setClavis }) {
         //   JSON.stringify(taxonIdInfo.data)
         // );
 
-
         scientificNameId = taxonIdInfo.data.AcceptedNameUsage.ScientificNameId;
       } else if (scientificNameIdRow > -1) {
         scientificNameId = csvArray[scientificNameIdRow][columnIndex];
@@ -795,13 +794,14 @@ function Files({ clavis, setClavis }) {
         csv({
           noheader: true,
           output: "csv",
+          delimiter: "auto",
         })
           .fromString(e.target.result)
           .then((csvArray) => {
             csvToJson(
               csvArray,
-              "nb",
-              "https://creativecommons.org/licenses/by/4.0/"
+              clavis.language[0] || "nb",
+              clavis.license || "https://creativecommons.org/licenses/by/4.0/"
             ).then((json) => {
               setClavis(json);
             });
