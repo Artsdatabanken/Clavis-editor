@@ -451,6 +451,7 @@ function Files({ clavis, setClavis }) {
         //   JSON.stringify(taxonIdInfo.data)
         // );
 
+
         scientificNameId = taxonIdInfo.data.AcceptedNameUsage.ScientificNameId;
       } else if (scientificNameIdRow > -1) {
         scientificNameId = csvArray[scientificNameIdRow][columnIndex];
@@ -609,31 +610,29 @@ function Files({ clavis, setClavis }) {
         continue;
       }
 
-      let parent;
-      if (
-        arrangedTaxa.length &&
-        arrangedTaxa[arrangedTaxa.length - 1].scientificName ===
-          taxon.scientificName
-      ) {
-        parent = arrangedTaxa[arrangedTaxa.length - 1];
-      } else {
-        parent = JSON.parse(JSON.stringify(taxon));
+      // find the index of the parent taxon in the arrangedTaxa array
+      let parentIndex = arrangedTaxa.findIndex(
+        (arrangedTaxon) => arrangedTaxon.scientificName === taxon.scientificName
+      );
+
+      // if there is no parent, make a new one
+      if (parentIndex === -1) {
+        let parent = JSON.parse(JSON.stringify(taxon));
         delete parent.morph;
         parent.children = [];
         parent.id = "taxon:" + uuidv4().replaceAll("-", "");
         parent.isEndPoint = true;
         arrangedTaxa.push(parent);
+        parentIndex = arrangedTaxa.length - 1;
       }
 
       let label = {};
       label[language] = taxon.morph;
 
-      parent.children.push({
+      arrangedTaxa[parentIndex].children.push({
         id: taxon.id,
         label: label,
       });
-
-      arrangedTaxa[arrangedTaxa.length - 1] = parent;
     }
 
     return arrangedTaxa;
@@ -681,7 +680,7 @@ function Files({ clavis, setClavis }) {
           }
         }
 
-        if (moveToParent) {
+        if (moveToParent && taxon.children) {
           let newStatements = statements.filter(
             (statement) =>
               statement.character === character.id &&
@@ -811,7 +810,9 @@ function Files({ clavis, setClavis }) {
         // setClavis(json);
       } catch (error) {}
 
-      alert("This is not a Clavis key file. If it is a csv file, it will be converted to a Clavis key, but this will take some seconds. Please be patient.");
+      alert(
+        "This is not a Clavis key file. If it is a csv file, it will be converted to a Clavis key, but this will take some seconds. Please be patient."
+      );
     }
   };
 
