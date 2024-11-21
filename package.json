@@ -1,6 +1,7 @@
 {
   "name": "clavis_editor",
   "version": "0.1.0",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@artsdatabanken/clavis-viewer-web": "^1.1.3",
