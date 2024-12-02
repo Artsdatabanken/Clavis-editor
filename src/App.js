@@ -337,6 +337,7 @@ function App() {
                   replaceItem={replaceItem}
                   deleteItem={deleteItem}
                   filterStatements={filterStatements}
+                  replaceTaxon={replaceTaxon}
                 />
               }
             />
