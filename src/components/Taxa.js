@@ -58,6 +58,7 @@ function Taxa({
   const [addingSubtaxon, setAddingSubtaxon] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [movingToTaxon, setMovingToTaxon] = useState(false);
+  const [expanded, setExpanded] = useState([]);
 
   useEffect(() => {
     console.log("Mounted");
@@ -73,6 +74,14 @@ function Taxa({
       taxa = [...taxa, taxon];
     }
     replaceItem(taxa);
+  };
+
+  const toggleExpanded = (id) => {
+    if (expanded.includes(id)) {
+      setExpanded(expanded.filter((x) => x !== id));
+    } else {
+      setExpanded([...expanded, id]);
+    }
   };
 
   const onDragEnd = (result) => {
@@ -103,7 +112,6 @@ function Taxa({
     taxa = replaceTaxon(parent, taxa);
 
     replaceItem(taxa);
-
   };
 
   const moveTo = (id, from, to) => {
@@ -268,7 +276,11 @@ function Taxa({
               provided.draggableProps.style
             )}
           >
-            <Accordion {...provided.dragHandleProps}>
+            <Accordion
+              expanded={expanded.includes(t.id)}
+              onChange={() => toggleExpanded(t.id)}
+              {...provided.dragHandleProps}
+            >
               <AccordionSummary
                 style={{ backgroundColor: "#455a6433" }}
                 expandIcon={<ExpandMoreIcon />}
@@ -280,7 +292,13 @@ function Taxa({
                   <i>{t["scientificName"] || getBestString(t["label"])}</i>
                 </h3>
               </AccordionSummary>
+
               <AccordionDetails className="sideBySide">
+
+              {expanded.includes(t.id) && (
+                <div>
+                  
+
                 {media}
 
                 <FormControl component="fieldset" variant="standard" fullWidth>
@@ -368,7 +386,7 @@ function Taxa({
                               value={movingToTaxon}
                             >
                               <MenuItem value={false}>None</MenuItem>
-                              {flattenTaxa(taxa).map((taxon) => (
+                              {flattenTaxa(taxa, " ", false, [], undefined, [t.id]).map((taxon) => (
                                 <MenuItem value={taxon["id"]}>
                                   {taxon["level"]}
                                   {taxon["scientificName"]}
@@ -417,6 +435,8 @@ function Taxa({
                     </IconButton>
                   </CardContent>
                 </FormControl>
+                </div>
+              )}
               </AccordionDetails>
             </Accordion>
 

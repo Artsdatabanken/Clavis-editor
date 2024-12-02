@@ -70,10 +70,14 @@ export const flattenTaxa = (
   level = " ",
   as_list = false,
   ancestry = [],
-  parent
+  parent,
+  skip = []
 ) => {
   let returning = [];
   taxa.forEach((taxon) => {
+    if (skip.includes(taxon["id"])) {
+      return;
+    }
     let t = deepClone(taxon);
 
     if (!t.scientificName && parent) {
@@ -116,7 +120,8 @@ export const flattenTaxa = (
           ("│ " + level).replaceAll("│  ", "└─ "),
           as_list,
           [...ancestry, taxon["id"]],
-          t
+          t,
+          skip
         ),
       ];
     }
