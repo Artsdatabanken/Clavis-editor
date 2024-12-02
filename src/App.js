@@ -284,10 +284,8 @@ function App() {
       statements = deepClone(c.statements);
     }
 
-    console.log(filterItems);
 
     filterItems.forEach((filterItem) => {
-      console.log(filterItem);
 
       let itemType = filterItem["id"].split(":")[0];
 
@@ -337,6 +335,7 @@ function App() {
                   replaceItem={replaceItem}
                   deleteItem={deleteItem}
                   filterStatements={filterStatements}
+                  replaceTaxon={replaceTaxon}
                 />
               }
             />
