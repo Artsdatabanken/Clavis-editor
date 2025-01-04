@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Alert } from "@mui/material";
 
-import { getBestString, getTaxon, cleanClavis } from "../Utils";
+import { getTaxon, cleanClavis, printTaxonName } from "../Utils";
 
 function Analyze({ clavis, setLoadingPage }) {
   const [analysis, setAnalysis] = useState({});
@@ -57,8 +57,8 @@ function Analyze({ clavis, setLoadingPage }) {
         result = result.concat([
           {
             id: taxon.id,
-            name:
-              taxon.scientificName || getBestString(taxon.label) || taxon.id,
+            scientificName: taxon.scientificName,
+            label: taxon.label,
           },
         ]);
       } else if (taxon.children && taxon.children.length) {
@@ -182,7 +182,7 @@ function Analyze({ clavis, setLoadingPage }) {
   }, [setLoadingPage]);
 
   if (!analysis.cleaned) {
-    let cleaningLog = cleanClavis(clavis)
+    let cleaningLog = cleanClavis(clavis);
     clavis = cleaningLog.clavis;
     setCleaningWarnings(cleaningLog.warnings);
     setAnalysis((analysis) => Object.assign({}, analysis, { cleaned: true }));
@@ -228,9 +228,7 @@ function Analyze({ clavis, setLoadingPage }) {
       <Card>
         {cleaningWarnings &&
           cleaningWarnings.map((warning) => (
-            <Alert severity="error">
-              {warning}
-            </Alert>
+            <Alert severity="error">{warning}</Alert>
           ))}
       </Card>
 
@@ -247,8 +245,8 @@ function Analyze({ clavis, setLoadingPage }) {
         {analysis?.invalidStatements &&
           analysis.invalidStatements.map((error) => (
             <Alert severity="warning">
-              {error.taxon.scientificName} has invalid scoring for "
-              {error.character}": {error.reason}
+              {printTaxonName(error.taxon, clavis.language[0])}
+              has invalid scoring for "{error.character}": {error.reason}
             </Alert>
           ))}
       </Card>
@@ -257,7 +255,10 @@ function Analyze({ clavis, setLoadingPage }) {
         {analysis?.indiscernables &&
           analysis.indiscernables.map((x) => (
             <Alert severity="warning" key={x[0].id + x[1].id}>
-              {x[0].name} and {x[1].name} are not discernable
+              {printTaxonName(x[0], clavis.language[0])}
+              and
+              {printTaxonName(x[1], clavis.language[0])}
+              are not discernable
             </Alert>
           ))}
       </Card>

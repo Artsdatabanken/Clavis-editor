@@ -289,7 +289,7 @@ function Taxa({
                   <IconButton>
                     <DragIndicatorIcon />
                   </IconButton>{" "}
-                  <i>{t["scientificName"] || getBestString(t["label"])}</i>
+                  <i>{t["scientificName"] || getBestString(t["label"]) || "(standard)"}</i>
                 </h3>
               </AccordionSummary>
 
@@ -386,7 +386,7 @@ function Taxa({
                               value={movingToTaxon}
                             >
                               <MenuItem value={false}>None</MenuItem>
-                              {flattenTaxa(taxa, " ", false, [], undefined, [t.id]).map((taxon) => (
+                              {flattenTaxa(taxa," ", false, [], undefined, [t.id]).map((taxon) => (
                                 <MenuItem value={taxon["id"]}>
                                   {taxon["level"]}
                                   {taxon["scientificName"]}

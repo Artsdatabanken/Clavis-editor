@@ -1,6 +1,12 @@
 import { React, useState } from "react";
-import { Card, CardContent, FormGroup, FormControlLabel, Switch } from "@mui/material";
-import { flattenTaxa, getStatementIcon } from "../Utils";
+import {
+  Card,
+  CardContent,
+  FormGroup,
+  FormControlLabel,
+  Switch,
+} from "@mui/material";
+import { flattenTaxa, getStatementIcon, printTaxonName } from "../Utils";
 
 function TaxonView({ clavis, taxonFilter }) {
   const taxaFlattened = flattenTaxa(clavis.taxa);
@@ -46,8 +52,6 @@ function TaxonView({ clavis, taxonFilter }) {
       return null;
     }
 
-
-
     let taxonStatements = clavis.statements.filter(
       (statement) => statement.taxon === taxon.id
     );
@@ -60,7 +64,9 @@ function TaxonView({ clavis, taxonFilter }) {
           style={{ marginBottom: "4em" }}
         >
           <CardContent>
-            <h2>{taxon.scientificName || taxon.label[clavis.language[0]]}</h2>
+            <h2>
+              {printTaxonName(taxon, clavis.language[0])}
+            </h2>
             {showStatements(taxonStatements)}
           </CardContent>
         </Card>

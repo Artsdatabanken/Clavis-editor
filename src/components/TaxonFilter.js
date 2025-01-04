@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@mui/material";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import { printTaxonName } from "../Utils";
 
 function TaxonFilter({ clavis, languages, taxonFilter, setTaxonFilter }) {
   const language = languages[0];
@@ -148,8 +149,7 @@ function TaxonFilter({ clavis, languages, taxonFilter, setTaxonFilter }) {
               marginLeft: `${1 + margins * 1.5}em`,
             }}
           >
-            {taxon.level}
-            {taxon.scientificName || taxon.label[language]}
+            {printTaxonName(taxon, language)}
           </span>
         </td>
       </tr>

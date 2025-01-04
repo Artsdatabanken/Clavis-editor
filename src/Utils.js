@@ -5,15 +5,22 @@ import { v4 as uuidv4 } from "uuid";
 
 export const languageNames = {
   en: "English",
-  nb: "Bokmål",
+  nb: "Norsk bokmål",
   nn: "Nynorsk",
+  se: "Sámegiella",
+  da: "Dansk",
+  de: "Deutsch",
+  is: "Íslenska",
+  fi: "Suomi",
+  nl: "Nederlands",
+  sv: "Svenska",
 };
+
 
 export const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
   result.splice(endIndex, 0, removed);
-
   return result;
 };
 
@@ -40,7 +47,15 @@ export const getImgSrc = (mediaElement, width, height) => {
     return "";
   }
 
-  if (mediaElement["mediaElement"]["file"]["url"]["externalId"]) {
+  if (mediaElement["mediaElement"]["file"]["file"]) {
+    console.log("SVG found");
+    return mediaElement["mediaElement"]["file"]["file"];
+  }
+
+  if (
+    mediaElement["mediaElement"]["file"]["url"] &&
+    mediaElement["mediaElement"]["file"]["url"]["externalId"]
+  ) {
     return (
       "https://www.artsdatabanken.no/Media/" +
       mediaElement["mediaElement"]["file"]["url"]["externalId"] +
@@ -51,7 +66,10 @@ export const getImgSrc = (mediaElement, width, height) => {
     );
   }
 
-  if (mediaElement["mediaElement"]["file"]["url"].includes("/")) {
+  if (
+    mediaElement["mediaElement"]["file"]["url"] &&
+    mediaElement["mediaElement"]["file"]["url"].includes("/")
+  ) {
     return mediaElement["mediaElement"]["file"]["url"];
   }
   return "";
@@ -82,10 +100,9 @@ export const flattenTaxa = (
 
     if (!t.scientificName && parent) {
       t.scientificName = parent.scientificName;
-    }
-
-    if (!t.scientificName && parent) {
-      t.scientificName = parent.scientificName;
+      if (!t.label) {
+        t.label = "";
+      }
     }
 
     if (!t.externalReference && parent) {
@@ -163,8 +180,12 @@ const cleanCharacters = (clavis) => {
 
   for (let i = 0; i < characters.length; i++) {
     let character = characters[i];
-    if(character.description) {
-      if(Object.entries(character.description).filter(([key, value]) => value !== "").length === 0) {
+    if (character.description) {
+      if (
+        Object.entries(character.description).filter(
+          ([key, value]) => value !== ""
+        ).length === 0
+      ) {
         characters[i].description = undefined;
       }
     }
@@ -553,4 +574,36 @@ export const getStatementIcon = (freq) => {
     return sometimesIcon;
   }
   return "";
+};
+
+export const printTaxonName = (
+  taxon,
+  language,
+  scientificName = true,
+  label = true
+) => {
+  let string = "";
+
+  if (scientificName && taxon.hasOwnProperty("scientificName")) {
+    string += taxon.scientificName;
+  }
+
+  string += " ";
+
+  if (label && taxon.hasOwnProperty("label")) {
+    if (taxon.label && taxon.label[language]) {
+      string += "(" + taxon.label[language] + ")";
+    } else {
+      string += "(default)";
+    }
+  }
+
+  if (
+    !taxon.hasOwnProperty("scientificName") &&
+    !taxon.hasOwnProperty("label")
+  ) {
+    string += "(default)";
+  }
+
+  return string.trim();
 };

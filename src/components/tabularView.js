@@ -176,7 +176,7 @@ function TabularView({
     return () => {
       console.log("Unmounted");
     };
-  }, [setLoadingPage, clavis.taxa, clavis.statements, taxonFilter, filterActive]);
+  }, [setLoadingPage, clavis.taxa, clavis.statements, clavis.language, taxonFilter, filterActive]);
 
   return (
     <div>

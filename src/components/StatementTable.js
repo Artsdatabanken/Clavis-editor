@@ -63,7 +63,14 @@ function StatementTable({
               }}
             >
               {taxon.level}
-              {taxon.scientificName || taxon.label[language]}
+              {!taxon.hasOwnProperty("label") && taxon.scientificName}
+              {taxon.label && taxon.label[language] && taxon.label[language].length > 0 &&
+                " (" + taxon.label[language] + ")"
+              }
+              {taxon.hasOwnProperty("label") && (!taxon.label[language] || taxon.label[language].length === 0) &&
+                " (default)"
+              }
+
             </span>
           </td>
         ))}

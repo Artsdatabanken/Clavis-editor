@@ -9,7 +9,6 @@ import Home from "./components/Home";
 import Files from "./components/Files";
 import Taxa from "./components/Taxa";
 import Characters from "./components/Characters";
-import Translations from "./components/Translations";
 
 import Resources from "./components/Resources";
 import JsonView from "./components/JsonView";
@@ -76,7 +75,27 @@ function App() {
       return imgId;
     }
 
-    if (imgId.includes("/")) {
+    if (imgId.startsWith("data:")) {
+      if (
+        !mediaElements.some(
+          (element) => element["mediaElement"]["file"]["file"] === imgId
+        )
+      ) {
+        id = "media:" + uuidv4().replaceAll("-", "");
+        mediaElements.push({
+          id: id,
+          mediaElement: {
+            file: {
+              file: imgId,
+            },
+          },
+        });
+      } else {
+        id = mediaElements.find(
+          (element) => element["mediaElement"]["file"]["file"] === imgId
+        ).id;
+      }
+    } else if (imgId.includes("/")) {
       if (
         !mediaElements.some(
           (element) => element["mediaElement"]["file"]["url"] === imgId
@@ -284,9 +303,7 @@ function App() {
       statements = deepClone(c.statements);
     }
 
-
     filterItems.forEach((filterItem) => {
-
       let itemType = filterItem["id"].split(":")[0];
 
       if (itemType === "taxon") {
@@ -364,17 +381,7 @@ function App() {
                 />
               }
             />
-            <Route
-              path="/translations"
-              element={
-                <Translations
-                  clavis={clavis}
-                  replaceItem={replaceItem}
-                  deleteItem={deleteItem}
-                  languages={clavis["language"]}
-                />
-              }
-            />
+           
             <Route
               path="/taxonview"
               element={<TaxonView clavis={clavis} taxonFilter={taxonFilter} />}
