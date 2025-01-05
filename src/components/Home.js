@@ -1,6 +1,5 @@
 import React from "react";
 
-import TextField from "@mui/material/TextField";
 import Card from "@mui/material/Card";
 import {
   FormGroup,
@@ -18,17 +17,27 @@ import {
 
 import SortableList from "./SortableList";
 
-import { languageNames } from "../Utils";
+import { languageNames, getMultipleLanguageInputs } from "../Utils";
 
 const LanguageItem = (l) => {
-  return <h3 style={{display: "inline-block", margin: "0em"}}><img alt={languageNames[l]} style={{width: "25px"}} src={"./flags/" + l + ".svg"} /> {languageNames[l]}</h3>
-}
+  return (
+    <h3 style={{ display: "inline-block", margin: "0em" }}>
+      <img
+        alt={languageNames[l]}
+        style={{ width: "25px" }}
+        src={"./flags/" + l + ".svg"}
+      />{" "}
+      {languageNames[l]}
+    </h3>
+  );
+};
 
 function Home({ clavis, replaceItem, newPerson, newImage }) {
-  const onFieldChange = (e) => {
-    const language = e.target.id.slice(-2);
-    const field = e.target.id.slice(0, -3).replace("key-", "");
-    const value = e.target.value;
+
+
+
+  const onFieldChange = (field, item, language, value, service) => {
+    console.log("onFieldChange", field, item, language, value, service);
 
     if (!(field in clavis) && field !== "creator") {
       clavis[field] = {};
@@ -87,38 +96,7 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
     replaceItem(clavis);
   };
 
-  const getLanguageInput = (name, placeholder, l, required) => {
-    let value = "";
-    if (clavis[name]) {
-      if (name === "geography") {
-        value = clavis["geography"]["name"][l];
-      } else if (name === "descriptionUrl" && clavis["descriptionUrl"][l])
-        value = clavis["descriptionUrl"][l]["externalId"];
-      else if (name === "creator" && clavis["persons"])
-        value = clavis["persons"].filter(
-          (p) => p["id"] === clavis["creator"]
-        )[0]["name"][l];
-      else value = clavis[name][l];
-    }
-
-    return (
-      <TextField
-        sx={{ m: 1 }}
-        fullWidth
-        label={required ? "Required" : ""}
-        key={"key-" + name + "-" + l}
-        id={"key-" + name + "-" + l}
-        placeholder={placeholder}
-        onChange={onFieldChange}
-        value={value}
-      />
-    );
-  };
-
-  const language = !!clavis["language"].length ? clavis["language"][0] : false;
   const [selectedLanguage, setSelectedLanguage] = React.useState(false);
-
- 
 
   return (
     <div className="content-section">
@@ -130,8 +108,8 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
 
           <SortableList
             items={clavis.language.map((l) => {
-              return {"render": LanguageItem, "id": l};
-              })}
+              return { render: LanguageItem, id: l };
+            })}
             setItems={setLanguages}
           />
 
@@ -165,8 +143,8 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
             }
 
             <FormHelperText>
-              Add languages to the key. At least one language is required. The
-              first language is the default language for the editor. Drag to reorder.
+              Add languages to the key. At least one language is required. Drag to
+              reorder.
             </FormHelperText>
           </FormControl>
           <FormControl>
@@ -210,18 +188,20 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
         </CardContent>
       </Card>
 
-      {!!language && (
+      {!!clavis.language.length && (
         <Card className="formCard">
           <CardContent>
             <FormControl component="fieldset" variant="standard" fullWidth>
               <FormLabel component="legend">Title</FormLabel>
               <FormGroup>
-                {getLanguageInput(
-                  "title",
-                  "E.g. 'Birds of Norway'",
-                  language,
-                  true
-                )}
+                {getMultipleLanguageInputs({
+                  item: clavis,
+                  field: "title",
+                  placeholder: "E.g. 'Birds of Norway'",
+                  languages: clavis["language"],
+                  required: true,
+                  handleChange: onFieldChange,
+                })}
               </FormGroup>
 
               <FormHelperText>Appears as the name of the key.</FormHelperText>
@@ -230,13 +210,20 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
         </Card>
       )}
 
-      {!!language && (
+      {!!clavis.language.length && (
         <Card className="formCard">
           <CardContent>
             <FormControl component="fieldset" variant="standard" fullWidth>
               <FormLabel component="legend">Creator</FormLabel>
               <FormGroup>
-                {getLanguageInput("creator", "E.g. 'Wouter Koch'", language)}
+                {getMultipleLanguageInputs({
+                  item: !!clavis.creator ? (clavis.persons.find((p) => p.id === clavis.creator))["name"] : undefined,
+                  field: "creator",
+                  placeholder: "E.g. 'Wouter Koch'",
+                  languages: clavis["language"],
+                  required: false,
+                  handleChange: onFieldChange,
+                })}
               </FormGroup>
 
               <FormHelperText>
@@ -246,18 +233,20 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
           </CardContent>
         </Card>
       )}
-
-      {!!language && (
+      {!!clavis.language.length && (
         <Card className="formCard">
           <CardContent>
             <FormControl component="fieldset" variant="standard" fullWidth>
               <FormLabel component="legend">Audience</FormLabel>
               <FormGroup>
-                {getLanguageInput(
-                  "audience",
-                  "E.g. 'Undergraduate students and up'",
-                  language
-                )}
+                {getMultipleLanguageInputs({
+                  item: clavis,
+                  field: "audience",
+                  placeholder: "E.g. 'Undergraduate students and up'",
+                  languages: clavis["language"],
+                  required: false,
+                  handleChange: onFieldChange,
+                })}
               </FormGroup>
 
               <FormHelperText>
@@ -268,17 +257,20 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
         </Card>
       )}
 
-      {!!language && (
+      {!!clavis.language.length && (
         <Card className="formCard">
           <CardContent>
             <FormControl component="fieldset" variant="standard" fullWidth>
               <FormLabel component="legend">Region name</FormLabel>
               <FormGroup>
-                {getLanguageInput(
-                  "geography",
-                  "E.g. 'Norway', 'Europe', 'Trøndelag', etc.",
-                  language
-                )}
+                {getMultipleLanguageInputs({
+                  item: clavis,
+                  field: "geography",
+                  placeholder: "E.g. 'Norway', 'Europe', 'Trøndelag', etc.",
+                  languages: clavis.language,
+                  required: false,
+                  handleChange: onFieldChange,
+                })}
               </FormGroup>
               <FormHelperText>
                 The name of the region for which the key is valid (e.g. covers
@@ -289,13 +281,20 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
         </Card>
       )}
 
-      {!!language && (
+      {!!clavis.language.length && (
         <Card className="formCard">
           <CardContent>
             <FormControl component="fieldset" variant="standard" fullWidth>
               <FormLabel component="legend">Description</FormLabel>
               <FormGroup>
-                {getLanguageInput("description", "Describe the key", language)}
+                {getMultipleLanguageInputs({
+                  item: clavis,
+                  field: "description",
+                  placeholder: "Describe the key",
+                  languages: clavis.language,
+                  required: false,
+                  handleChange: onFieldChange,
+                })}
               </FormGroup>
 
               <FormHelperText>Short description of the key.</FormHelperText>
@@ -303,13 +302,20 @@ function Home({ clavis, replaceItem, newPerson, newImage }) {
           </CardContent>
         </Card>
       )}
-      {!!language && (
+      {!!clavis.language.length && (
         <Card className="formCard">
           <CardContent>
             <FormControl component="fieldset" variant="standard" fullWidth>
               <FormLabel component="legend">Description ID</FormLabel>
               <FormGroup>
-                {getLanguageInput("descriptionUrl", "Provide an ID", language)}
+                {getMultipleLanguageInputs({
+                  item: clavis,
+                  field: "descriptionUrl",
+                  placeholder: "Provide an ID",
+                  languages: clavis.language,
+                  required: false,
+                  handleChange: onFieldChange,
+                })}
               </FormGroup>
 
               <FormHelperText>

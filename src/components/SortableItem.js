@@ -15,6 +15,7 @@ export function SortableItem(props) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    padding: "0.25em",
   };
 
   const Element = props.render || 'div';
@@ -22,7 +23,7 @@ export function SortableItem(props) {
   
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <DragIndicatorIcon />
+      <DragIndicatorIcon  style={{fontSize: "1em"}} />
       {Element(l)}
     </div>
   );

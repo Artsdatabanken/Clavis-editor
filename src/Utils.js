@@ -16,7 +16,6 @@ export const languageNames = {
   sv: "Svenska",
 };
 
-
 export const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
@@ -301,53 +300,97 @@ const cleanStatements = (clavis) => {
   };
 };
 
-export const getLanguageInput = (
-  item,
-  field,
-  placeholder,
-  l,
-  required,
-  handleChange,
-  service,
-  doneCallback
-) => {
-  let endAdornment;
-  if (doneCallback) {
+export const getMultipleLanguageInputs = (props) => {
+  return props.languages.map((l) => {
+    props.language = l;
+    return getLanguageInput(props);
+  });
+};
+
+export const getLanguageInput = (props) => {
+  let endAdornment, startAdornment;
+  let language = props.language;
+  if (props.doneCallback) {
     endAdornment = (
       <InputAdornment position="end">
-        <IconButton onClick={doneCallback}>
+        <IconButton onClick={props.doneCallback}>
           <CheckIcon />
         </IconButton>
       </InputAdornment>
     );
   }
 
+  if (language) {
+    startAdornment = (
+      <InputAdornment position="start">
+        <img
+          alt={languageNames[language]}
+          style={{ width: "25px" }}
+          src={"./flags/" + language + ".svg"}
+        />
+      </InputAdornment>
+    );
+  }
+
+  let value = "";
+
+  console.log("props.item", props.item);
+
+
+  if (
+    !!props.item &&
+    typeof props.item === "object" &&
+    language in props.item
+  ) {
+    value = props.item[language];
+  } else if (
+    !!props.item &&
+    typeof props.item[props.field] === "object" &&
+    language in props.item[props.field] &&
+    typeof props.item[props.field][language] === "object" &&
+    "serviceId" in props.item[props.field][language]
+  ) {
+    value = props.item[props.field][language]["externalId"];
+  } else if (
+    !!props.item &&
+    typeof props.item[props.field] === "object" &&
+    language in props.item[props.field]
+  ) {
+    value = props.item[props.field][language];
+  }
+  else if (props.item === undefined) {
+    props.item = {
+      id: "new",
+    }
+  }
+
   return (
     <TextField
       sx={{ m: 1 }}
       fullWidth
-      label={required ? "Required" : ""}
+      label={props.required ? "Required" : ""}
       InputProps={{
         endAdornment: endAdornment,
+        startAdornment: startAdornment,
       }}
-      key={item["id"] + "-" + field + "-" + l}
-      id={"key-" + field + "-" + l}
-      placeholder={placeholder}
+      key={props.item["id"] + "-" + props.field + "-" + language}
+      id={"key-" + props.field + "-" + language}
+      placeholder={props.placeholder}
       onChange={(e) => {
-        handleChange(field, item, l, e.target.value, service);
+        props.handleChange(
+          props.field,
+          props.item,
+          language,
+          e.target.value,
+          props.service
+        );
       }}
       onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === "Escape") && doneCallback) {
-          doneCallback({});
+        if ((e.key === "Enter" || e.key === "Escape") && props.doneCallback) {
+          props.doneCallback({});
         }
       }}
-      value={
-        field in item && l in item[field]
-          ? !!service
-            ? item[field][l]["externalId"]
-            : item[field][l]
-          : ""
-      }
+      value={value}
     />
   );
 };
