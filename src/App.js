@@ -10,7 +10,6 @@ import Files from "./components/Files";
 import Taxa from "./components/Taxa";
 import Characters from "./components/Characters";
 
-import Resources from "./components/Resources";
 import JsonView from "./components/JsonView";
 import TestView from "./components/TestView";
 import TaxonView from "./components/TaxonView";
@@ -386,7 +385,6 @@ function App() {
               path="/taxonview"
               element={<TaxonView clavis={clavis} taxonFilter={taxonFilter} />}
             />
-            <Route path="/resources" element={<Resources clavis={clavis} />} />
             <Route path="/json" element={<JsonView clavis={clavis} />} />
             <Route path="/test" element={<TestView clavis={clavis} />} />
             <Route

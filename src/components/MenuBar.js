@@ -97,18 +97,6 @@ function MenuBar({ loadingPage, setLoadingPage }) {
           </ListItemIcon>
           <ListItemText>Per taxon</ListItemText>
         </MenuItem>
-        {/* <MenuItem text="Media"  >
-          <ListItemIcon>
-            <CollectionsIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Media</ListItemText>
-        </MenuItem>
-        <MenuItem text="Resources" onClick={() => navigate('/resources')} >
-          <ListItemIcon>
-            <SwitchAccountIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Resources</ListItemText>
-        </MenuItem> */}
         <Divider />
 
 

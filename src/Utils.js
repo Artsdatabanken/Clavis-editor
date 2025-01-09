@@ -313,7 +313,7 @@ export const getMultipleLanguageInputs = (props) => {
   });
 };
 
-export const getLanguageInput = (props) => {
+const getLanguageInput = (props) => {
   let endAdornment, startAdornment;
   let language = props.language;
   if (props.doneCallback) {

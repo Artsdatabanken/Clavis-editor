@@ -36,12 +36,12 @@ function Statement({ statement, characters, taxa, setStatementValue, deleteItem,
                     <div><b>Taxon:</b>&nbsp;
                       <i>{taxon["scientificName"]}</i>
                       { !!taxon.label &&
-                        <span>({getBestString(taxon.label)})</span>
+                        <span>({getBestString(taxon.label, languages)})</span>
                       }
                     </div>
 
                     <div><b>Character:</b>&nbsp;
-                      <span>{getBestString(character["title"])}</span>
+                      <span>{getBestString(character["title"], languages)}</span>
                     </div>
                   </div>
 
@@ -64,7 +64,7 @@ function Statement({ statement, characters, taxa, setStatementValue, deleteItem,
 
                   {statement.map(fact =>
                     <div key={fact.id} style={{ flexGrow: "1" }} className="sideBySide">
-                      <div>{getBestString(character["states"].find(x => x.id === fact.value)["title"])}</div>
+                      <div>{getBestString(character["states"].find(x => x.id === fact.value)["title"], languages)}</div>
                       <ButtonGroup size="small" aria-label="outlined primary button group">
                         <Button variant={fact.frequency === 1 ? "contained" : "outlined"} color="success" onClick={e => setStatementValue("frequency", fact, 1)}>Always</Button>
                         <Button variant={fact.frequency !== 1 && fact.frequency > 0 ? "contained" : "outlined"} color="warning" onClick={e => setStatementValue("frequency", fact, .5)}>In some cases</Button>

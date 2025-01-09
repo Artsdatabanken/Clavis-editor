@@ -249,7 +249,7 @@ function Statements({
                 {flattenTaxa(taxa).map((taxon) => (
                   <MenuItem value={taxon["id"]}>
                     {taxon["level"]}
-                    {taxon["scientificName"] || getBestString(taxon["label"])}
+                    {taxon["scientificName"] || getBestString(taxon["label"], languages)}
                   </MenuItem>
                 ))}
               </Select>
@@ -270,7 +270,7 @@ function Statements({
               >
                 {characters.map((character) => (
                   <MenuItem value={character["id"]}>
-                    {getBestString(character["title"])}
+                    {getBestString(character["title"], languages)}
                   </MenuItem>
                 ))}
               </Select>
