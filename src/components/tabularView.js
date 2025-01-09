@@ -31,7 +31,6 @@ function TabularView({
    * @param {object} taxon - The taxon parameter.
    */
   const openStatements = (character, taxon) => {
-    console.log("openStatements");
     let filteredStatements = [];
 
     if (
@@ -78,11 +77,9 @@ function TabularView({
     setCurrentStatements(filteredStatements);
     setCurrentCharacter(character);
     setCurrentTaxon(taxon);
-    console.log("openStatements done");
   };
 
   const objectifyStatements = (statements) => {
-    console.log("objectifyStatements");
     let object = {};
     statements.forEach((statement) => {
       if (!object[statement.taxon]) {
@@ -97,7 +94,6 @@ function TabularView({
       };
     });
 
-    console.log("objectifyStatements done");
     return object;
   };
 
@@ -145,17 +141,14 @@ function TabularView({
     // }))
   };
 
-
-
   useEffect(() => {
-
     const filterTaxa = (flattenedTaxa, filter) => {
       if (!filter.length || !filterActive) {
         return flattenedTaxa;
       }
-  
+
       let newTaxa = [];
-  
+
       flattenedTaxa.forEach((taxon) => {
         if (filter.includes(taxon.id)) {
           newTaxa.push(taxon);
@@ -164,29 +157,35 @@ function TabularView({
       return newTaxa;
     };
 
-    console.log("Mounted");
     setLoadingPage("");
-
-    console.log("Flatten");
 
     setTaxaFlattened(filterTaxa(flattenTaxa(clavis.taxa), taxonFilter));
 
     setStatementsObject(objectifyStatements(clavis.statements));
-
-    return () => {
-      console.log("Unmounted");
-    };
-  }, [setLoadingPage, clavis.taxa, clavis.statements, clavis.language, taxonFilter, filterActive]);
+  }, [
+    setLoadingPage,
+    clavis.taxa,
+    clavis.statements,
+    clavis.language,
+    taxonFilter,
+    filterActive,
+  ]);
 
   return (
     <div>
       <h1 className="bp4-heading">Table view</h1>
 
       <FormGroup>
-        <FormControlLabel control={<Switch onClick={() => setFilterActive(!filterActive)} checked={filterActive} />} label={"Taxon filter " + (filterActive ? "enabled" : "disabled")} />
+        <FormControlLabel
+          control={
+            <Switch
+              onClick={() => setFilterActive(!filterActive)}
+              checked={filterActive}
+            />
+          }
+          label={"Taxon filter " + (filterActive ? "enabled" : "disabled")}
+        />
       </FormGroup>
-
-
 
       <StatementTable
         statementsObject={statementsObject}

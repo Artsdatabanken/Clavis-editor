@@ -3,15 +3,14 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import ImageSelector from "./ImageSelector";
 import States from "./States";
-import { v4 as uuidv4 } from 'uuid';
-import AddIcon from '@mui/icons-material/Add';
+import { v4 as uuidv4 } from "uuid";
+import AddIcon from "@mui/icons-material/Add";
 
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-// import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 import {
   CardContent,
@@ -24,11 +23,6 @@ import {
   FormControlLabel,
   Switch,
   InputAdornment,
-  // Dialog,
-  // DialogTitle,
-  // DialogActions,
-  // DialogContent,
-  // DialogContentText,
   Fab,
   TextField,
   FormControl,
@@ -38,22 +32,15 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  // ButtonGroup,
-  // Button,
-  // Paper,
-  // Popper,
-  // MenuList,
-  // Grow,
-  // ClickAwayListener,
 } from "@mui/material";
 import {
   search,
   getBestString,
   getImgSrc,
   deepClone,
-  getEditableItems,
   reorder,
   getDraggableItemStyle,
+  getMultipleLanguageInputs,
 } from "../Utils";
 
 function Characters({ clavis, newImage, replaceItem, deleteItem }) {
@@ -63,7 +50,6 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
 
   const [addingImageTo, setAddingImageTo] = useState(false);
   const [filtered, setFiltered] = useState(characters);
-  const [editingField, setEditingField] = useState({});
   const [newItem, setNewItem] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [searchString, setSearchString] = useState("");
@@ -77,36 +63,25 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
       result.length &&
       result[0]["id"].split(":")[0] === "character"
     ) {
-      console.warn("redoing search");
       setFiltered(search(result, searchString));
     } else if ("$schema" in item) {
       setFiltered(search(item.characters, searchString));
     }
   };
 
-  // Adds a new character to the list of characters and replaces that list to this updated one
-  // const addCharacter = () => {
-  //   characters = deepClone(characters);
-  //   characters.push(
-  //     newItem
-  //   )
-  //   replaceAndFilter(characters)
-  //   setNewItem(false)
-  // }
-
   const toggleExpansion = (itemId) => {
     setExpandedItem(itemId !== expandedItem ? itemId : false);
   };
 
   const createCharacter = () => {
-    const id = "character:" + uuidv4().replaceAll("-", "")
+    const id = "character:" + uuidv4().replaceAll("-", "");
     setNewItem({
-      "id": id,
-      "title": {},
-      "states": []
-    })
-    setExpandedItem(id)
-  }
+      id: id,
+      title: {},
+      states: [],
+    });
+    setExpandedItem(id);
+  };
 
   const remove = (item) => {
     replaceAndFilter(deleteItem(item), "characters");
@@ -165,93 +140,6 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
     replaceAndFilter(items);
   };
 
-  // const SplitButton = () => {
-  //   const options = ["Multiple choice", "Numerical"];
-  //   const [open, setOpen] = React.useState(false);
-  //   const anchorRef = React.useRef(null);
-  //   const [selectedIndex, setSelectedIndex] = React.useState(0);
-
-  //   const handleClick = () => {
-  //     console.info(`You clicked ${options[selectedIndex]}`);
-  //   };
-
-  //   const handleMenuItemClick = (event, index) => {
-  //     setSelectedIndex(index);
-  //     setOpen(false);
-  //   };
-
-  //   const handleToggle = () => {
-  //     setOpen((prevOpen) => !prevOpen);
-  //   };
-
-  //   const handleClose = (event) => {
-  //     if (anchorRef.current && anchorRef.current.contains(event.target)) {
-  //       return;
-  //     }
-
-  //     setOpen(false);
-  //   };
-
-  //   return (
-  //     <React.Fragment>
-  //       <ButtonGroup
-  //         variant="contained"
-  //         ref={anchorRef}
-  //         aria-label="split button"
-  //       >
-  //         <Button onClick={handleClick}>{options[selectedIndex]}</Button>
-  //         <Button
-  //           size="small"
-  //           aria-controls={open ? "split-button-menu" : undefined}
-  //           aria-expanded={open ? "true" : undefined}
-  //           aria-label="select merge strategy"
-  //           aria-haspopup="menu"
-  //           onClick={handleToggle}
-  //         >
-  //           <ArrowDropDownIcon />
-  //         </Button>
-  //       </ButtonGroup>
-  //       <Popper
-  //         sx={{
-  //           zIndex: 1,
-  //         }}
-  //         open={open}
-  //         anchorEl={anchorRef.current}
-  //         role={undefined}
-  //         transition
-  //         disablePortal
-  //       >
-  //         {({ TransitionProps, placement }) => (
-  //           <Grow
-  //             {...TransitionProps}
-  //             style={{
-  //               transformOrigin:
-  //                 placement === "bottom" ? "center top" : "center bottom",
-  //             }}
-  //           >
-  //             <Paper>
-  //               <ClickAwayListener onClickAway={handleClose}>
-  //                 <MenuList id="split-button-menu" autoFocusItem>
-  //                   {options.map((option, index) => (
-  //                     <MenuItem
-  //                       key={option}
-  //                       disabled={index === 2}
-  //                       selected={index === selectedIndex}
-  //                       onClick={(event) => handleMenuItemClick(event, index)}
-  //                     >
-  //                       {option}
-  //                     </MenuItem>
-  //                   ))}
-  //                 </MenuList>
-  //               </ClickAwayListener>
-  //             </Paper>
-  //           </Grow>
-  //         )}
-  //       </Popper>
-  //     </React.Fragment>
-  //   );
-  // };
-
   const renderCharacter = (character, index) => {
     let media = "";
 
@@ -308,7 +196,7 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                   <IconButton>
                     <DragIndicatorIcon />
                   </IconButton>{" "}
-                  {getBestString(character["title"])}
+                  {getBestString(character["title"], languages)}
                 </h3>
               </AccordionSummary>
               <AccordionDetails className="sideBySide">
@@ -322,14 +210,13 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                     >
                       <FormLabel component="legend">Title</FormLabel>
                       <FormGroup>
-                        {getEditableItems({
+                        {getMultipleLanguageInputs({
                           item: character,
                           field: "title",
                           placeholder: "E.g. 'Color of the wings'",
                           languages: languages,
-                          callback: setValue,
-                          editingField: editingField,
-                          setEditingField: setEditingField,
+                          required: true,
+                          handleChange: setValue,
                         })}
                       </FormGroup>
                     </FormControl>
@@ -341,14 +228,13 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                     >
                       <FormLabel component="legend">Description</FormLabel>
                       <FormGroup>
-                        {getEditableItems({
+                        {getMultipleLanguageInputs({
                           item: character,
                           field: "description",
                           placeholder: "Optional short further explanation",
                           languages: languages,
-                          callback: setValue,
-                          editingField: editingField,
-                          setEditingField: setEditingField,
+                          required: false,
+                          handleChange: setValue,
                         })}
                       </FormGroup>
                     </FormControl>
@@ -360,14 +246,13 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                     >
                       <FormLabel component="legend">Description ID</FormLabel>
                       <FormGroup>
-                        {getEditableItems({
+                        {getMultipleLanguageInputs({
                           item: character,
                           field: "descriptionUrl",
                           placeholder: "The ID of a page at NBIC",
                           languages: languages,
-                          callback: setValue,
-                          editingField: editingField,
-                          setEditingField: setEditingField,
+                          required: false,
+                          handleChange: setValue,
                         })}
                       </FormGroup>
                     </FormControl>
@@ -407,9 +292,9 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                           return char["states"].map((state) => {
                             return (
                               <MenuItem value={state["id"]}>
-                                {getBestString(char["title"]) +
+                                {getBestString(char["title"], languages) +
                                   " - " +
-                                  getBestString(state["title"])}
+                                  getBestString(state["title"], languages)}
                               </MenuItem>
                             );
                           });
@@ -545,8 +430,6 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
 
       {!!languages.length && (
         <>
-          {/* <SplitButton /> */}
-
           <Fab
             color="primary"
             aria-label="add character"
@@ -560,41 +443,6 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
       {!!addingImageTo && (
         <ImageSelector callback={addImage} newImage={newImage} />
       )}
-
-      {/* {!!newItem && (
-        <Dialog open={true}>
-          <DialogTitle>Add character</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Specify the title of the new character
-            </DialogContentText>
-
-            {getEditableItems({
-              item: newItem,
-              field: "title",
-              placeholder: "E.g. 'Color of the wings'",
-              languages: languages,
-              callback: setValue,
-            })}
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setNewItem(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                addCharacter();
-              }}
-            >
-              Add
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )} */}
     </div>
   );
 }

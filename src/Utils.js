@@ -47,7 +47,6 @@ export const getImgSrc = (mediaElement, width, height) => {
   }
 
   if (mediaElement["mediaElement"]["file"]["file"]) {
-    console.log("SVG found");
     return mediaElement["mediaElement"]["file"]["file"];
   }
 
@@ -74,12 +73,21 @@ export const getImgSrc = (mediaElement, width, height) => {
   return "";
 };
 
-export const getBestString = (ob) => {
+export const getBestString = (ob, languages=[]) => {
+
   if (typeof ob === "string") {
     return ob;
   }
 
-  return !!ob ? ob.en || ob.nb || ob.nn || "" : "";
+  for(let i = 0; i < languages.length; i++) {
+    let language = languages[i];
+    if (ob[language]) {
+      return ob[language];
+    }
+  };
+
+  return "";
+
 };
 
 export const flattenTaxa = (
@@ -333,8 +341,6 @@ export const getLanguageInput = (props) => {
   }
 
   let value = "";
-
-  console.log("props.item", props.item);
 
 
   if (

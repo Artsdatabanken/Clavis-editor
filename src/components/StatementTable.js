@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-import {
-  getBestString,
-  getStatementIcon,
-} from "../Utils";
+import { getBestString, getStatementIcon } from "../Utils";
 
 import Card from "@mui/material/Card";
 
@@ -12,7 +9,7 @@ function StatementTable({
   statementsObject,
   taxaFlattened,
   characters,
-  openStatements
+  openStatements,
 }) {
   const [highlightedTaxon, setHighlightedTaxon] = useState(false);
   const [highlightedCharacter, setHighlightedCharacter] = useState(false);
@@ -64,29 +61,28 @@ function StatementTable({
             >
               {taxon.level}
               {!taxon.hasOwnProperty("label") && taxon.scientificName}
-              {taxon.label && taxon.label[language] && taxon.label[language].length > 0 &&
-                " (" + taxon.label[language] + ")"
-              }
-              {taxon.hasOwnProperty("label") && (!taxon.label[language] || taxon.label[language].length === 0) &&
-                " (default)"
-              }
-
+              {taxon.label &&
+                taxon.label[language] &&
+                taxon.label[language].length > 0 &&
+                " (" + taxon.label[language] + ")"}
+              {taxon.hasOwnProperty("label") &&
+                (!taxon.label[language] ||
+                  taxon.label[language].length === 0) &&
+                " (default)"}
             </span>
           </td>
         ))}
       </>
     );
-  }
-
-
-
-
-
+  };
 
   const Statement = ({ character, state, taxon, lastLevel, lastResult }) => {
-
     // If a statement is found in the statementsObject, use that
-    if (statementsObject[taxon.id] && statementsObject[taxon.id][character.id] && statementsObject[taxon.id][character.id][state.id]) {
+    if (
+      statementsObject[taxon.id] &&
+      statementsObject[taxon.id][character.id] &&
+      statementsObject[taxon.id][character.id][state.id]
+    ) {
       return {
         html: (
           <td
@@ -100,11 +96,13 @@ function StatementTable({
                 "rgba(255, 255, 0, " +
                 (0.5 * (highlightedTaxon === taxon.id) +
                   0.5 * (highlightedCharacter === character.id)) **
-                2 +
+                  2 +
                 ")",
             }}
           >
-            {getStatementIcon(statementsObject[taxon.id][character.id][state.id]["frequency"])}
+            {getStatementIcon(
+              statementsObject[taxon.id][character.id][state.id]["frequency"]
+            )}
           </td>
         ),
         lastLevel: taxon.level,
@@ -128,7 +126,7 @@ function StatementTable({
                 "rgba(255, 255, 0, " +
                 (0.5 * (highlightedTaxon === taxon.id) +
                   0.5 * (highlightedCharacter === character.id)) **
-                2 +
+                  2 +
                 ")",
             }}
           >
@@ -138,7 +136,7 @@ function StatementTable({
         lastLevel: lastLevel,
         lastResult: lastResult,
       };
-    };
+    }
 
     // otherwise, return a clickable cell
     return {
@@ -154,7 +152,7 @@ function StatementTable({
               "rgba(255, 255, 0, " +
               (0.5 * (highlightedTaxon === taxon.id) +
                 0.5 * (highlightedCharacter === character.id)) **
-              2 +
+                2 +
               ")",
           }}
         ></td>
@@ -196,9 +194,13 @@ function StatementTable({
                 highlightedCharacter === character.id ? "yellow" : "white",
             }}
           >
-            {getBestString(state.title)}
+            {getBestString(state.title, languages)}
           </td>
-          <Statements character={character} state={state} taxaFlattened={taxaFlattened} />
+          <Statements
+            character={character}
+            state={state}
+            taxaFlattened={taxaFlattened}
+          />
         </tr>
       ))}
     </>
@@ -218,7 +220,7 @@ function StatementTable({
               }}
             >
               <span style={{ fontWeight: "bold" }}>
-                {character.title.en || character.title.nb || character.title.nn}
+                {getBestString(character.title, languages)}
               </span>
             </td>
           </tr>
@@ -237,7 +239,6 @@ function StatementTable({
           borderCollapse: "collapse",
         }}
       >
-
         <tbody>
           <tr>
             <td style={{ width: "200px" }}>
@@ -246,25 +247,15 @@ function StatementTable({
             <TaxonHeaders taxaFlattened={taxaFlattened} />
           </tr>
           <Characters characters={characters} taxaFlattened={taxaFlattened} />
-
         </tbody>
       </table>
-    )
+    );
   };
-
-  useEffect(() => {
-    console.log("Table mounted");
-
-    return () => {
-      console.log("Table unmounted");
-    }
-  }, []);
 
   return (
     <Card>
       <Tabular />
     </Card>
-
   );
 }
 
