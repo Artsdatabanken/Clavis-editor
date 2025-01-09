@@ -198,17 +198,6 @@ function States({
                     handleChange: setValue,
                   })}
 
-                  {/* 
-
-                {getEditableItems({
-                  "item": state,
-                  "field": "title",
-                  "placeholder": "E.g. 'Green'",
-                  "languages": languages,
-                  "callback": setValue,
-                  "editingField": editingField,
-                  "setEditingField": setEditingField
-                })} */}
                 </div>
                 <div style={{ marginBottom: "auto", marginTop: "auto" }}>
                   <IconButton

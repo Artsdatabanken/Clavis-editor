@@ -73,21 +73,19 @@ export const getImgSrc = (mediaElement, width, height) => {
   return "";
 };
 
-export const getBestString = (ob, languages=[]) => {
-
+export const getBestString = (ob, languages = []) => {
   if (typeof ob === "string") {
     return ob;
   }
 
-  for(let i = 0; i < languages.length; i++) {
+  for (let i = 0; i < languages.length; i++) {
     let language = languages[i];
-    if (ob[language]) {
+    if (!!ob && ob[language]) {
       return ob[language];
     }
-  };
+  }
 
   return "";
-
 };
 
 export const flattenTaxa = (
@@ -342,7 +340,6 @@ export const getLanguageInput = (props) => {
 
   let value = "";
 
-
   if (
     !!props.item &&
     typeof props.item === "object" &&
@@ -363,11 +360,10 @@ export const getLanguageInput = (props) => {
     language in props.item[props.field]
   ) {
     value = props.item[props.field][language];
-  }
-  else if (props.item === undefined) {
+  } else if (props.item === undefined) {
     props.item = {
       id: "new",
-    }
+    };
   }
 
   return (
@@ -398,29 +394,6 @@ export const getLanguageInput = (props) => {
       }}
       value={value}
     />
-  );
-};
-
-export const getEditableItems = (props) => {
-  return propsToField(props, props.languages[0]);
-};
-
-export const getEditingItems = (props) => {
-  return props.languages.map((l) => {
-    return propsToField(props, l);
-  });
-};
-
-const propsToField = (props, l) => {
-  return getLanguageInput(
-    props.item,
-    props.field,
-    props.placeholder,
-    l,
-    props.required,
-    props.callback,
-    props.service,
-    props.setEditingField
   );
 };
 

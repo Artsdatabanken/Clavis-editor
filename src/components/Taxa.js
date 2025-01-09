@@ -33,12 +33,12 @@ import {
 import {
   deepClone,
   getBestString,
-  getEditableItems,
   getImgSrc,
   reorder,
   getDraggableItemStyle,
   flattenTaxa,
   getTaxon,
+  getMultipleLanguageInputs,
 } from "../Utils";
 import TaxonSelector from "./TaxonSelector";
 import ImageSelector from "./ImageSelector";
@@ -50,11 +50,9 @@ function Taxa({
   newImage,
   replaceItem,
   deleteItem,
-  filterStatements,
   replaceTaxon,
 }) {
   const [addingImageTo, setAddingImageTo] = useState(false);
-  const [editingField, setEditingField] = useState({});
   const [addingSubtaxon, setAddingSubtaxon] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [movingToTaxon, setMovingToTaxon] = useState(false);
@@ -225,24 +223,22 @@ function Taxa({
     let names = "";
 
     if (t.hasOwnProperty("scientificName")) {
-      names = getEditableItems({
+      names = getMultipleLanguageInputs({
         item: t,
         field: "vernacularName",
         placeholder: "Vernacular name of this taxon'",
         languages: languages,
-        callback: setValue,
-        editingField: editingField,
-        setEditingField: setEditingField,
+        required: false,
+        handleChange: setValue,
       });
     } else {
-      names = getEditableItems({
+      names = getMultipleLanguageInputs({
         item: t,
         field: "label",
         placeholder: "Name of this non-taxonomic unit",
         languages: languages,
-        callback: setValue,
-        editingField: editingField,
-        setEditingField: setEditingField,
+        required: false,
+        handleChange: setValue,
       });
     }
 
@@ -289,154 +285,178 @@ function Taxa({
                   <IconButton>
                     <DragIndicatorIcon />
                   </IconButton>{" "}
-                  <i>{t["scientificName"] || getBestString(t["label"]) || "(standard)"}</i>
+                  <i>
+                    {t["scientificName"] ||
+                      getBestString(t["label"], languages) ||
+                      "(standard)"}
+                  </i>
                 </h3>
               </AccordionSummary>
 
               <AccordionDetails className="sideBySide">
-
-              {expanded.includes(t.id) && (
-                <div>
-                  
-
-                {media}
-
-                <FormControl component="fieldset" variant="standard" fullWidth>
-                  <CardContent>
-                    <FormControl
-                      component="fieldset"
-                      variant="standard"
-                      fullWidth
-                    >
-                      <FormLabel component="legend">
-                        {t.hasOwnProperty("scientificName")
-                          ? "Vernacular name"
-                          : "Label"}
-                      </FormLabel>
-                      <FormGroup>{names}</FormGroup>
-                    </FormControl>
+                {expanded.includes(t.id) && (
+                  <div>
+                    {media}
 
                     <FormControl
                       component="fieldset"
                       variant="standard"
                       fullWidth
                     >
-                      <FormLabel component="legend">Description ID</FormLabel>
-                      <FormGroup>
-                        {getEditableItems({
-                          item: t,
-                          field: "descriptionUrl",
-                          placeholder: "The ID of a page at NBIC",
-                          languages: languages,
-                          callback: setValue,
-                          editingField: editingField,
-                          setEditingField: setEditingField,
-                          service: "service:nbic_page",
-                        })}
-                      </FormGroup>
-                    </FormControl>
-
-                    <Grid container spacing={10}>
-                      <Grid item xs={12} md={4}>
+                      <CardContent>
                         <FormControl
                           component="fieldset"
                           variant="standard"
                           fullWidth
                         >
                           <FormLabel component="legend">
-                            Choose if this is an endpoint. If it is, the user
-                            will not be required to continue beyond this point.
+                            {t.hasOwnProperty("scientificName")
+                              ? "Vernacular name"
+                              : "Label"}
                           </FormLabel>
-                          <FormGroup>{makeEndpoint}</FormGroup>
+                          <FormGroup>{names}</FormGroup>
                         </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={4}>
-                        <FormControl component="fieldset" variant="standard">
-                          <FormLabel component="legend">
-                            Add a subunit of this taxon. This can be a taxon or
-                            a custom subdivision (morph, sex, taxon complex...)
-                          </FormLabel>
 
+                        <FormControl
+                          component="fieldset"
+                          variant="standard"
+                          fullWidth
+                        >
+                          <FormLabel component="legend">
+                            Description ID
+                          </FormLabel>
                           <FormGroup>
-                            <Button
-                              aria-label="add subtaxon"
-                              onClick={() => {
-                                setAddingSubtaxon(t["id"]);
-                              }}
-                              variant="contained"
-                              startIcon={<AddIcon />}
-                            >
-                              Add subtaxon
-                            </Button>
+                            {getMultipleLanguageInputs({
+                              item: t,
+                              field: "descriptionUrl",
+                              placeholder: "The ID of a page at NBIC",
+                              languages: languages,
+                              required: false,
+                              handleChange: setValue,
+                              service: "service:nbic_page",
+                            })}
                           </FormGroup>
-                        </FormControl>{" "}
-                      </Grid>
-                      <Grid item xs={12} md={4}>
-                        <FormControl component="fieldset" variant="standard">
-                          <FormLabel component="legend">
-                            Move this taxon as a subtaxon of a different taxon.
-                          </FormLabel>
+                        </FormControl>
 
-                          <FormGroup>
-                            <Select
+                        <Grid container spacing={10}>
+                          <Grid item xs={12} md={4}>
+                            <FormControl
+                              component="fieldset"
+                              variant="standard"
                               fullWidth
-                              sx={{ m: 0, marginY: "5px" }}
-                              id="taxon-parent"
-                              onChange={(e) => setMovingToTaxon(e.target.value)}
-                              value={movingToTaxon}
                             >
-                              <MenuItem value={false}>None</MenuItem>
-                              {flattenTaxa(taxa," ", false, [], undefined, [t.id]).map((taxon) => (
-                                <MenuItem value={taxon["id"]}>
-                                  {taxon["level"]}
-                                  {taxon["scientificName"]}
-                                  {!!taxon["label"] &&
-                                    getBestString(taxon["label"])}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            <FormHelperText>
-                              Select a taxon that this one is to be a subunit
-                              of.
-                            </FormHelperText>
-
-                            <Button
-                              aria-label="add subtaxon"
-                              onClick={() => {
-                                manualMove(t["id"], movingToTaxon);
-                              }}
-                              variant="contained"
-                              startIcon={<LowPriorityIcon />}
+                              <FormLabel component="legend">
+                                Choose if this is an endpoint. If it is, the
+                                user will not be required to continue beyond
+                                this point.
+                              </FormLabel>
+                              <FormGroup>{makeEndpoint}</FormGroup>
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12} md={4}>
+                            <FormControl
+                              component="fieldset"
+                              variant="standard"
                             >
-                              Move
-                            </Button>
-                          </FormGroup>
-                        </FormControl>{" "}
-                      </Grid>
-                    </Grid>
-                  </CardContent>
+                              <FormLabel component="legend">
+                                Add a subunit of this taxon. This can be a taxon
+                                or a custom subdivision (morph, sex, taxon
+                                complex...)
+                              </FormLabel>
 
-                  <CardContent>
-                    <IconButton
-                      aria-label="delete"
-                      color={removing === t ? "error" : "default"}
-                      onClick={() => {
-                        if (removing === t) {
-                          remove(t);
-                        } else {
-                          setRemoving(t);
-                        }
-                      }}
-                      variant="contained"
-                      style={{ float: "right" }}
-                    >
-                      <DeleteIcon />
-                      {removing === t ? "Are you sure?" : ""}
-                    </IconButton>
-                  </CardContent>
-                </FormControl>
-                </div>
-              )}
+                              <FormGroup>
+                                <Button
+                                  aria-label="add subtaxon"
+                                  onClick={() => {
+                                    setAddingSubtaxon(t["id"]);
+                                  }}
+                                  variant="contained"
+                                  startIcon={<AddIcon />}
+                                >
+                                  Add subtaxon
+                                </Button>
+                              </FormGroup>
+                            </FormControl>{" "}
+                          </Grid>
+                          <Grid item xs={12} md={4}>
+                            <FormControl
+                              component="fieldset"
+                              variant="standard"
+                            >
+                              <FormLabel component="legend">
+                                Move this taxon as a subtaxon of a different
+                                taxon.
+                              </FormLabel>
+
+                              <FormGroup>
+                                <Select
+                                  fullWidth
+                                  sx={{ m: 0, marginY: "5px" }}
+                                  id="taxon-parent"
+                                  onChange={(e) =>
+                                    setMovingToTaxon(e.target.value)
+                                  }
+                                  value={movingToTaxon}
+                                >
+                                  <MenuItem value={false}>None</MenuItem>
+                                  {flattenTaxa(
+                                    taxa,
+                                    " ",
+                                    false,
+                                    [],
+                                    undefined,
+                                    [t.id]
+                                  ).map((taxon) => (
+                                    <MenuItem value={taxon["id"]}>
+                                      {taxon["level"]}
+                                      {taxon["scientificName"]}
+                                      {!!taxon["label"] &&
+                                        getBestString(taxon["label"], languages)}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                <FormHelperText>
+                                  Select a taxon that this one is to be a
+                                  subunit of.
+                                </FormHelperText>
+
+                                <Button
+                                  aria-label="add subtaxon"
+                                  onClick={() => {
+                                    manualMove(t["id"], movingToTaxon);
+                                  }}
+                                  variant="contained"
+                                  startIcon={<LowPriorityIcon />}
+                                >
+                                  Move
+                                </Button>
+                              </FormGroup>
+                            </FormControl>{" "}
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+
+                      <CardContent>
+                        <IconButton
+                          aria-label="delete"
+                          color={removing === t ? "error" : "default"}
+                          onClick={() => {
+                            if (removing === t) {
+                              remove(t);
+                            } else {
+                              setRemoving(t);
+                            }
+                          }}
+                          variant="contained"
+                          style={{ float: "right" }}
+                        >
+                          <DeleteIcon />
+                          {removing === t ? "Are you sure?" : ""}
+                        </IconButton>
+                      </CardContent>
+                    </FormControl>
+                  </div>
+                )}
               </AccordionDetails>
             </Accordion>
 
