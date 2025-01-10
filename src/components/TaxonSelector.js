@@ -6,7 +6,7 @@ import {
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { v4 as uuidv4 } from 'uuid';
-import { deepClone, flattenTaxa, getBestString, getLanguageInput, taxonNames } from "../Utils"
+import { deepClone, flattenTaxa, getBestString, getMultipleLanguageInputs, taxonNames } from "../Utils"
 
 import axios from "axios";
 import "../App.css";
@@ -235,9 +235,15 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
 
                 <FormLabel component="legend">Label</FormLabel>
 
-                {languages.map(function (l) {
-                  return getLanguageInput(newTaxon, "label", "Or make a label instead, e.g. 'Male' or 'Larva'", l, false, setTaxon)
+                {getMultipleLanguageInputs({
+                  item: newTaxon,
+                  field: "label",
+                  placeholder: "Or make a label instead, e.g. 'Male' or 'Larva'",
+                  languages: languages,
+                  required: false,
+                  handleChange: setTaxon,
                 })}
+
 
 
                 {
@@ -256,7 +262,7 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
                       {flattenTaxa(taxa).map(taxon => <MenuItem value={taxon["id"]}>
                         {taxon["level"]}
                         {taxon["scientificName"]}
-                        {!!taxon["label"] && getBestString(taxon["label"])}
+                        {!!taxon["label"] && getBestString(taxon["label"], languages)}
                       </MenuItem>)}
                     </Select>
                     <FormHelperText>Select a taxon that this one is to be a subunit of.</FormHelperText>

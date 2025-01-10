@@ -49,7 +49,7 @@ function StatementEditDialogue({
 
           <p>
             <b>Character:</b>&nbsp;
-            {getBestString(currentCharacter.title)}
+            {getBestString(currentCharacter.title, languages)}
           </p>
           <div style={{ flexGrow: "1" }}>
             {currentStatements.map((fact) => (
@@ -62,7 +62,7 @@ function StatementEditDialogue({
                   {getBestString(
                     currentCharacter["states"].find(
                       (x) => x.id === fact.value
-                    )["title"]
+                    )["title"], languages
                   )}
                 </div>
                 <ButtonGroup

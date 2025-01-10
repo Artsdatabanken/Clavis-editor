@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import CloudSyncIcon from "@mui/icons-material/CloudSync";
 import InfoIcon from "@mui/icons-material/Info";
-import LanguageIcon from "@mui/icons-material/Language";
 import ForestIcon from "@mui/icons-material/Forest";
 import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
@@ -98,24 +97,6 @@ function MenuBar({ loadingPage, setLoadingPage }) {
           </ListItemIcon>
           <ListItemText>Per taxon</ListItemText>
         </MenuItem>
-        <MenuItem text="Translations" onClick={() => navigate("/translations")}>
-          <ListItemIcon>
-            <LanguageIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Translations</ListItemText>
-        </MenuItem>
-        {/* <MenuItem text="Media"  >
-          <ListItemIcon>
-            <CollectionsIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Media</ListItemText>
-        </MenuItem>
-        <MenuItem text="Resources" onClick={() => navigate('/resources')} >
-          <ListItemIcon>
-            <SwitchAccountIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Resources</ListItemText>
-        </MenuItem> */}
         <Divider />
 
 

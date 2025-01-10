@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 22 16" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <title>Flag of Norway</title>
+ <rect width="22" height="16" fill="#ba0c2f"/>
+ <path d="M0,8h22M8,0v16" stroke="#fff" stroke-width="4"/>
+ <path d="M0,8h22M8,0v16" stroke="#00205b" stroke-width="2"/>
+ <g fill="#fff" stroke-width="1.801" style="paint-order:stroke fill markers" aria-label="NN">
+  <path d="m0.85742 1.8867v12.227h3.1836v-5.916l3.8613 5.916h2.7773v-12.227h-3.1699v5.9395l-3.8828-5.9395z" color="#000000" fill="#000" fill-opacity=".65" style="-inkscape-stroke:none"/>
+  <path d="m9.779 2.7864v10.427h-1.3893l-5.2494-8.0423v8.0423h-1.3822v-10.427h1.3822l5.2708 8.0638v-8.0638z" color="#000000" style="-inkscape-stroke:none"/>
+  <path d="m11.32 1.8867v12.227h3.1836v-5.916l3.8613 5.916h2.7773v-12.227h-3.1699v5.9395l-3.8828-5.9395z" color="#000000" fill="#000" fill-opacity=".65034" style="-inkscape-stroke:none"/>
+  <path d="m20.242 2.7864v10.427h-1.3893l-5.2494-8.0423v8.0423h-1.3822v-10.427h1.3822l5.2708 8.0638v-8.0638z" color="#000000" style="-inkscape-stroke:none"/>
+ </g>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:title>Flag of Norway</dc:title>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+</svg>

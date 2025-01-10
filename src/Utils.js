@@ -5,15 +5,21 @@ import { v4 as uuidv4 } from "uuid";
 
 export const languageNames = {
   en: "English",
-  nb: "Bokmål",
+  nb: "Norsk bokmål",
   nn: "Nynorsk",
+  se: "Sámegiella",
+  da: "Dansk",
+  de: "Deutsch",
+  is: "Íslenska",
+  fi: "Suomi",
+  nl: "Nederlands",
+  sv: "Svenska",
 };
 
 export const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
   result.splice(endIndex, 0, removed);
-
   return result;
 };
 
@@ -40,7 +46,14 @@ export const getImgSrc = (mediaElement, width, height) => {
     return "";
   }
 
-  if (mediaElement["mediaElement"]["file"]["url"]["externalId"]) {
+  if (mediaElement["mediaElement"]["file"]["file"]) {
+    return mediaElement["mediaElement"]["file"]["file"];
+  }
+
+  if (
+    mediaElement["mediaElement"]["file"]["url"] &&
+    mediaElement["mediaElement"]["file"]["url"]["externalId"]
+  ) {
     return (
       "https://www.artsdatabanken.no/Media/" +
       mediaElement["mediaElement"]["file"]["url"]["externalId"] +
@@ -51,18 +64,28 @@ export const getImgSrc = (mediaElement, width, height) => {
     );
   }
 
-  if (mediaElement["mediaElement"]["file"]["url"].includes("/")) {
+  if (
+    mediaElement["mediaElement"]["file"]["url"] &&
+    mediaElement["mediaElement"]["file"]["url"].includes("/")
+  ) {
     return mediaElement["mediaElement"]["file"]["url"];
   }
   return "";
 };
 
-export const getBestString = (ob) => {
+export const getBestString = (ob, languages = []) => {
   if (typeof ob === "string") {
     return ob;
   }
 
-  return !!ob ? ob.en || ob.nb || ob.nn || "" : "";
+  for (let i = 0; i < languages.length; i++) {
+    let language = languages[i];
+    if (!!ob && ob[language]) {
+      return ob[language];
+    }
+  }
+
+  return "";
 };
 
 export const flattenTaxa = (
@@ -82,10 +105,9 @@ export const flattenTaxa = (
 
     if (!t.scientificName && parent) {
       t.scientificName = parent.scientificName;
-    }
-
-    if (!t.scientificName && parent) {
-      t.scientificName = parent.scientificName;
+      if (!t.label) {
+        t.label = "";
+      }
     }
 
     if (!t.externalReference && parent) {
@@ -163,8 +185,12 @@ const cleanCharacters = (clavis) => {
 
   for (let i = 0; i < characters.length; i++) {
     let character = characters[i];
-    if(character.description) {
-      if(Object.entries(character.description).filter(([key, value]) => value !== "").length === 0) {
+    if (character.description) {
+      if (
+        Object.entries(character.description).filter(
+          ([key, value]) => value !== ""
+        ).length === 0
+      ) {
         characters[i].description = undefined;
       }
     }
@@ -280,77 +306,94 @@ const cleanStatements = (clavis) => {
   };
 };
 
-export const getLanguageInput = (
-  item,
-  field,
-  placeholder,
-  l,
-  required,
-  handleChange,
-  service,
-  doneCallback
-) => {
-  let endAdornment;
-  if (doneCallback) {
+export const getMultipleLanguageInputs = (props) => {
+  return props.languages.map((l) => {
+    props.language = l;
+    return getLanguageInput(props);
+  });
+};
+
+const getLanguageInput = (props) => {
+  let endAdornment, startAdornment;
+  let language = props.language;
+  if (props.doneCallback) {
     endAdornment = (
       <InputAdornment position="end">
-        <IconButton onClick={doneCallback}>
+        <IconButton onClick={props.doneCallback}>
           <CheckIcon />
         </IconButton>
       </InputAdornment>
     );
   }
 
+  if (language) {
+    startAdornment = (
+      <InputAdornment position="start">
+        <img
+          alt={languageNames[language]}
+          style={{ width: "25px" }}
+          src={"./flags/" + language + ".svg"}
+        />
+      </InputAdornment>
+    );
+  }
+
+  let value = "";
+
+  if (
+    !!props.item &&
+    typeof props.item === "object" &&
+    language in props.item
+  ) {
+    value = props.item[language];
+  } else if (
+    !!props.item &&
+    typeof props.item[props.field] === "object" &&
+    language in props.item[props.field] &&
+    typeof props.item[props.field][language] === "object" &&
+    "serviceId" in props.item[props.field][language]
+  ) {
+    value = props.item[props.field][language]["externalId"];
+  } else if (
+    !!props.item &&
+    typeof props.item[props.field] === "object" &&
+    language in props.item[props.field]
+  ) {
+    value = props.item[props.field][language];
+  } else if (props.item === undefined) {
+    props.item = {
+      id: "new",
+    };
+  }
+
   return (
     <TextField
       sx={{ m: 1 }}
       fullWidth
-      label={required ? "Required" : ""}
+      label={props.required ? "Required" : ""}
       InputProps={{
         endAdornment: endAdornment,
+        startAdornment: startAdornment,
       }}
-      key={item["id"] + "-" + field + "-" + l}
-      id={"key-" + field + "-" + l}
-      placeholder={placeholder}
+      key={props.item["id"] + "-" + props.field + "-" + language}
+      id={"key-" + props.field + "-" + language}
+      placeholder={props.placeholder}
       onChange={(e) => {
-        handleChange(field, item, l, e.target.value, service);
+        props.handleChange(
+          props.field,
+          props.item,
+          language,
+          e.target.value,
+          props.service
+        );
       }}
       onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === "Escape") && doneCallback) {
-          doneCallback({});
+        if ((e.key === "Enter" || e.key === "Escape") && props.doneCallback) {
+          props.doneCallback({});
         }
       }}
-      value={
-        field in item && l in item[field]
-          ? !!service
-            ? item[field][l]["externalId"]
-            : item[field][l]
-          : ""
-      }
+      value={value}
     />
-  );
-};
-
-export const getEditableItems = (props) => {
-  return propsToField(props, props.languages[0]);
-};
-
-export const getEditingItems = (props) => {
-  return props.languages.map((l) => {
-    return propsToField(props, l);
-  });
-};
-
-const propsToField = (props, l) => {
-  return getLanguageInput(
-    props.item,
-    props.field,
-    props.placeholder,
-    l,
-    props.required,
-    props.callback,
-    props.service,
-    props.setEditingField
   );
 };
 
@@ -553,4 +596,36 @@ export const getStatementIcon = (freq) => {
     return sometimesIcon;
   }
   return "";
+};
+
+export const printTaxonName = (
+  taxon,
+  language,
+  scientificName = true,
+  label = true
+) => {
+  let string = "";
+
+  if (scientificName && taxon.hasOwnProperty("scientificName")) {
+    string += taxon.scientificName;
+  }
+
+  string += " ";
+
+  if (label && taxon.hasOwnProperty("label")) {
+    if (taxon.label && taxon.label[language]) {
+      string += "(" + taxon.label[language] + ")";
+    } else {
+      string += "(default)";
+    }
+  }
+
+  if (
+    !taxon.hasOwnProperty("scientificName") &&
+    !taxon.hasOwnProperty("label")
+  ) {
+    string += "(default)";
+  }
+
+  return string.trim();
 };
