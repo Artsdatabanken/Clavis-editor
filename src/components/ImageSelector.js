@@ -28,7 +28,7 @@ function ImageSelector({ callback, scientificNameId, newImage }) {
   if (!imageSuggestions && !!scientificNameId) {
     axios
       .get(
-        "https://www.artsdatabanken.no/api/Images/species/" + scientificNameId
+        "https://artsdatabanken.no/api/Images/species/" + scientificNameId
       )
       .then((res) => {
         setImageSuggestions(res.data.data);

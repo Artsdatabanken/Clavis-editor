@@ -11,6 +11,8 @@ import { deepClone, flattenTaxa, getBestString, getMultipleLanguageInputs, taxon
 import axios from "axios";
 import "../App.css";
 
+
+
 function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSubtaxon }) {
   const emptyTaxon = { "id": "taxon:" + uuidv4().replaceAll("-", "") }
 
@@ -28,24 +30,42 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
     setSelectedParent(addingSubtaxon)
   }
 
-  const getChildren = async (levels, id) => {
+  const getChildren = async (targetRank, id) => {
     let children = []
     setLoadingTaxa(loadingTaxa + 1)
 
+    // Get all children of this taxon
+    let res = await axios.get("https://nortaxa.artsdatabanken.no/api/v1/TaxonName/Children/ByScientificNameId/" + id)
+    let data = res.data.filter(t => t.taxonomicStatus === "Accepted")
 
-    let res = await axios.get("https://www.artsdatabanken.no/api/Taxon/ScientificName?higherClassificationID=" + id + "&taxonRank=" + levels[0])
-    let data = res.data.filter(t => t.taxonomicStatus === "accepted")
+    // Filter for children that match the target rank
+    let matchingChildren = data.filter(t => t.rank.toLowerCase() === targetRank.toLowerCase())
 
-    for (let c = 0; c < data.length; c++) {
-      let child = data[c];
-      let taxon = { "id": "taxon:" + uuidv4().replaceAll("-", "") }
-
-      child = await fillTaxon(taxon, child)
-      if (levels.length > 1) {
-        child.children = await getChildren(levels.slice(1), child.externalReference.externalId)
+    if (matchingChildren.length > 0) {
+      // Found taxa at the target rank, process and return them
+      for (let c = 0; c < matchingChildren.length; c++) {
+        let child = matchingChildren[c];
+        let taxon = { "id": "taxon:" + uuidv4().replaceAll("-", "") }
+        child = await fillTaxon(taxon, child)
+        children.push(child)
       }
-      children.push(child)
+    } else {
+      // No matches at target rank, recursively search in all children
+      // Keep the hierarchy by creating intermediate taxa
+      for (let c = 0; c < data.length; c++) {
+        let childData = data[c];
+        let recursiveChildren = await getChildren(targetRank, childData.scientificNameId)
+
+        // Only create an intermediate taxon if we found target taxa below it
+        if (recursiveChildren.length > 0) {
+          let intermediateTaxon = { "id": "taxon:" + uuidv4().replaceAll("-", "") }
+          intermediateTaxon = await fillTaxon(intermediateTaxon, childData)
+          intermediateTaxon.children = recursiveChildren
+          children.push(intermediateTaxon)
+        }
+      }
     }
+
     setLoadingTaxa(loadingTaxa - 1)
     return children
   }
@@ -54,8 +74,7 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
   const submitTaxon = async () => {
     let submitting = deepClone(newTaxon)
     if (!!importSubtaxaLevel) {
-      let relevantLevels = taxonNames.slice(taxonNames.findIndex(x => x === selectedLevel) + 1, taxonNames.findIndex(x => x === importSubtaxaLevel) + 1)
-      submitting.children = await getChildren(relevantLevels, submitting.externalReference.externalId)
+      submitting.children = await getChildren(importSubtaxaLevel, submitting.externalReference.externalId)
     }
 
     addTaxon(submitting, selectedParent)
@@ -73,31 +92,31 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
     if (v.PopularNames) {
       popular = JSON.parse(v.PopularNames)
     }
-    else if (v["taxonID"]) {
-      popular = await axios.get("https://www.artsdatabanken.no/api/Taxon/" + v.taxonID)
-      popular = popular.data.vernacularNames.filter(x => x.nomenclaturalStatus === "preferred")
+    else if (v.preferredVernacularNames && v.preferredVernacularNames.length > 0) {
+      popular = v.preferredVernacularNames
     }
+   
 
-    taxon["scientificName"] = v["ScientificName"] || v["scientificName"]
+    taxon["scientificName"] = v["presentationName"] || v["ScientificName"] || v["scientificName"]
     taxon["externalReference"] = {
       "serviceId": "service:nbic_taxa",
-      "externalId": (v["ScientificNameId"] || v["scientificNameID"]).toString()
+      "externalId": (v["scientificNameId"] || v["ScientificNameId"] || v["scientificNameID"]).toString()
     }
 
-    if (popular) {
+    if (popular && languages) {
       taxon["vernacularName"] = {}
       popular.forEach(popname => {
-        if (popname.Lang === "nb-NO") {
-          taxon.vernacularName.nb = popname.Name
+        let langCode = null
+        let vernacularNameValue = null
+
+       if (popname.nameLanguageIso) {
+          langCode = popname.nameLanguageIso
+          vernacularNameValue = popname.name
         }
-        else if (popname.Lang === "nn-NO") {
-          taxon.vernacularName.nn = popname.Name
-        }
-        else if (popname.language === "nb-NO") {
-          taxon.vernacularName.nb = popname.vernacularName
-        }
-        else if (popname.language === "nn-NO") {
-          taxon.vernacularName.nn = popname.vernacularName
+
+        // Only add vernacular name if the language is supported by the key
+        if (langCode && vernacularNameValue && languages.includes(langCode)) {
+          taxon.vernacularName[langCode] = vernacularNameValue
         }
       })
     }
@@ -114,19 +133,24 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
 
 
     if (e.target.value.length > 2) {
-      let sci = await axios.get("https://artsdatabanken.no/api/Taxon/ScientificName?scientificName=" + e.target.value)
-      let artskart = await axios.get("https://artskart.artsdatabanken.no/appapi/api/data/SearchTaxons?maxCount=5&name=" + e.target.value)
+      let search = await axios.get("https://nortaxa.artsdatabanken.no/api/v1/TaxonName/Search?Search=" + e.target.value + "&MaxResults=5")
 
-      // Replace the ones from the main API with the ones from Artskart if duplicated, as Artskart provides vernacular names
-      // Then remove the duplicates
-      // Using the fact that the main API writes scientificName while Artskart writes ScientificName
-
-      let result = [...sci.data, ...artskart.data]
+      let result = [...search.data]
 
       setSuggestions([...new Set(result.map(s => {
-        if (!!s.scientificName) {
-          return result.find(x => x.ScientificName === s.scientificName) || s
+      if (!!s.acceptedScientificName && !!s.acceptedScientificName.name) {
+          let PopularName
+          if(!!s.preferredVernacularNames && s.preferredVernacularNames.find(x => x.nameLanguageIso === "nb")) {
+            PopularName = s.preferredVernacularNames.find(x => x.nameLanguageIso === "nb").name
+          }
+
+          return {
+            "PopularName": PopularName,
+            "ScientificName": s.acceptedScientificName.name,
+            "ScientificNameId": s.acceptedScientificName.nameId,
+          }
         }
+
         return s
       }))])
 
@@ -159,11 +183,11 @@ function TaxonSelector({ taxa, addTaxon, languages, addingSubtaxon, setAddingSub
 
     axios
       .get(
-        "https://www.artsdatabanken.no/api/Taxon/ScientificName/" +
-        (v.scientificNameID || v.ScientificNameId)
+        "https://nortaxa.artsdatabanken.no/api/v1/TaxonName/ByScientificNameId/" +
+        (v.scientificNameId || v.scientificNameID || v.ScientificNameId)
       )
       .then((res) => {
-        setSelectedLevel(res.data.taxonRank);
+        setSelectedLevel(res.data.rank);
       });
 
     taxon = await fillTaxon(taxon, v)
