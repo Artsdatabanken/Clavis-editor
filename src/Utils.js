@@ -610,21 +610,15 @@ export const printTaxonName = (
     string += taxon.scientificName;
   }
 
-  string += " ";
-
-  if (label && taxon.hasOwnProperty("label")) {
-    if (taxon.label && taxon.label[language]) {
-      string += "(" + taxon.label[language] + ")";
-    } else {
-      string += "(default)";
+  if (label && taxon.hasOwnProperty("label") && taxon.label && taxon.label[language]) {
+    if (string) {
+      string += " ";
     }
+    string += "(" + taxon.label[language] + ")";
   }
 
-  if (
-    !taxon.hasOwnProperty("scientificName") &&
-    !taxon.hasOwnProperty("label")
-  ) {
-    string += "(default)";
+  if (!string) {
+    string = "(unnamed)";
   }
 
   return string.trim();

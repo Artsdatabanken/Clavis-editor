@@ -119,6 +119,8 @@ function App() {
       if (
         !mediaElements.some(
           (element) =>
+            element["mediaElement"]["file"]["url"] &&
+            typeof element["mediaElement"]["file"]["url"] === "object" &&
             element["mediaElement"]["file"]["url"]["externalId"] === imgId
         )
       ) {
