@@ -53,7 +53,17 @@ function Analyze({ clavis, setLoadingPage }) {
     let result = [];
 
     taxa.forEach((taxon) => {
-      if (taxon.isEndpoint || !taxon.children || !taxon.children.length) {
+      if (taxon.isEndPoint && taxon.children && taxon.children.length) {
+        // If this is an endpoint with children, add the children as endpoints with parent's scientificName
+        taxon.children.forEach((child) => {
+          result.push({
+            id: child.id,
+            scientificName: taxon.scientificName,
+            label: child.label,
+          });
+        });
+      } else if (taxon.isEndPoint || !taxon.children || !taxon.children.length) {
+        // Regular endpoint without children, or leaf taxon
         result = result.concat([
           {
             id: taxon.id,
@@ -62,6 +72,7 @@ function Analyze({ clavis, setLoadingPage }) {
           },
         ]);
       } else if (taxon.children && taxon.children.length) {
+        // Not an endpoint but has children, recurse
         result = result.concat(getEndpoints(taxon.children));
       }
     });
@@ -255,10 +266,8 @@ function Analyze({ clavis, setLoadingPage }) {
         {analysis?.indiscernables &&
           analysis.indiscernables.map((x) => (
             <Alert severity="warning" key={x[0].id + x[1].id}>
-              {printTaxonName(x[0], clavis.language[0])}
-              and
-              {printTaxonName(x[1], clavis.language[0])}
-              are not discernable
+              {printTaxonName(x[0], clavis.language[0])} and{" "}
+              {printTaxonName(x[1], clavis.language[0])} are not discernable
             </Alert>
           ))}
       </Card>
