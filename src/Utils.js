@@ -175,7 +175,110 @@ export const cleanClavis = (clavis) => {
   cleaningLog = cleanCharacters(clavis);
   clavis["characters"] = cleaningLog.characters;
 
+  // Clean media elements: deduplicate and remove unused
+  cleaningLog = cleanMediaElements(clavis);
+  clavis = cleaningLog.clavis;
+  warings = [...warings, ...cleaningLog.warnings];
+
   return { clavis, warings };
+};
+
+const cleanMediaElements = (clavis) => {
+  console.log("Cleaning media elements...");
+
+  let warnings = [];
+
+  if (!clavis.mediaElements || clavis.mediaElements.length === 0) {
+    console.log("... no media elements to clean");
+    return { clavis, warnings };
+  }
+
+  // Step 1: Find and merge duplicate media elements (same file content)
+  // Build a map of file content to first media element ID
+  const contentToFirstId = new Map();
+  const idReplacements = new Map();
+  const duplicateIds = new Set();
+
+  for (const mediaElement of clavis.mediaElements) {
+    // Get the file content as a comparable string
+    const fileContent = JSON.stringify(mediaElement.mediaElement?.file || {});
+
+    if (contentToFirstId.has(fileContent)) {
+      // This is a duplicate - map this ID to the first occurrence's ID
+      const firstId = contentToFirstId.get(fileContent);
+      idReplacements.set(mediaElement.id, firstId);
+      duplicateIds.add(mediaElement.id);
+      console.log(`Duplicate media element found: ${mediaElement.id} -> ${firstId}`);
+    } else {
+      // First occurrence of this content
+      contentToFirstId.set(fileContent, mediaElement.id);
+    }
+  }
+
+  // Step 2: Replace all references to duplicate IDs with the first occurrence
+  if (idReplacements.size > 0) {
+    let clavisJson = JSON.stringify(clavis);
+
+    for (const [oldId, newId] of idReplacements) {
+      // Replace all occurrences of the old ID with the new ID
+      // Use a regex to match the exact ID string (with quotes for JSON context)
+      const regex = new RegExp(escapeRegExp(`"${oldId}"`), 'g');
+      clavisJson = clavisJson.replace(regex, `"${newId}"`);
+    }
+
+    clavis = JSON.parse(clavisJson);
+    console.log(`Replaced ${idReplacements.size} duplicate media element references`);
+
+    // Step 2b: Remove duplicate media elements from the array
+    // After replacement, duplicates now have the same ID as the first occurrence
+    // Keep only the first occurrence of each ID
+    const seenIds = new Set();
+    clavis.mediaElements = clavis.mediaElements.filter((me) => {
+      if (seenIds.has(me.id)) {
+        return false;
+      }
+      seenIds.add(me.id);
+      return true;
+    });
+    console.log(`Removed ${duplicateIds.size} duplicate media element definitions`);
+  }
+
+  // Step 3: Remove unused media elements
+  // Convert to JSON string and count occurrences of each media element ID
+  const clavisJson = JSON.stringify(clavis);
+  const unusedIds = [];
+
+  for (const mediaElement of clavis.mediaElements) {
+    const id = mediaElement.id;
+    // Count occurrences of this ID in the JSON
+    // Use a regex to find all occurrences
+    const regex = new RegExp(escapeRegExp(`"${id}"`), 'g');
+    const matches = clavisJson.match(regex);
+    const count = matches ? matches.length : 0;
+
+    // If only 1 occurrence, it's only defined in mediaElements but never referenced
+    if (count <= 1) {
+      unusedIds.push(id);
+      console.log(`Unused media element: ${id}`);
+    }
+  }
+
+  // Remove unused media elements
+  if (unusedIds.length > 0) {
+    clavis.mediaElements = clavis.mediaElements.filter(
+      (me) => !unusedIds.includes(me.id)
+    );
+    console.log(`Removed ${unusedIds.length} unused media elements`);
+  }
+
+  console.log("... done");
+
+  return { clavis, warnings };
+};
+
+// Helper function to escape special regex characters
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
 const cleanCharacters = (clavis) => {
