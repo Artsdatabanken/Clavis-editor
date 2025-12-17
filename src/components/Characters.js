@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import ImageSelector from "./ImageSelector";
@@ -37,7 +37,6 @@ import {
   search,
   getBestString,
   getImgSrc,
-  deepClone,
   reorder,
   getDraggableItemStyle,
   getMultipleLanguageInputs,
@@ -55,7 +54,7 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
   const [searchString, setSearchString] = useState("");
   const [expandedItem, setExpandedItem] = useState(false);
 
-  const replaceAndFilter = (item, type) => {
+  const replaceAndFilter = useCallback((item, type) => {
     let result = replaceItem(item, type);
 
     if (
@@ -67,13 +66,13 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
     } else if ("$schema" in item) {
       setFiltered(search(item.characters, searchString));
     }
-  };
+  }, [replaceItem, searchString]);
 
-  const toggleExpansion = (itemId) => {
-    setExpandedItem(itemId !== expandedItem ? itemId : false);
-  };
+  const toggleExpansion = useCallback((itemId) => {
+    setExpandedItem((prev) => (itemId !== prev ? itemId : false));
+  }, []);
 
-  const createCharacter = () => {
+  const createCharacter = useCallback(() => {
     const id = "character:" + uuidv4().replaceAll("-", "");
     setNewItem({
       id: id,
@@ -81,23 +80,23 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
       states: [],
     });
     setExpandedItem(id);
-  };
+  }, []);
 
-  const remove = (item) => {
+  const remove = useCallback((item) => {
     replaceAndFilter(deleteItem(item), "characters");
-  };
+  }, [replaceAndFilter, deleteItem]);
 
   // Adds an (existing) image to an item by referring to its id. Generic enough for copy-paste
-  const addImage = (imageId) => {
+  const addImage = useCallback((imageId) => {
     if (imageId !== false) {
       addingImageTo["media"] = imageId;
       replaceAndFilter(addingImageTo);
     }
     setAddingImageTo(false);
-  };
+  }, [addingImageTo, replaceAndFilter]);
 
   // Sets or adds the value of a field in the character. Can have a language and/or an external service
-  const setValue = (field, item, l, value, service) => {
+  const setValue = useCallback((field, item, l, value, service) => {
     setNewItem(false);
 
     if (l) {
@@ -123,9 +122,9 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
       }
     }
     replaceAndFilter(item);
-  };
+  }, [replaceAndFilter]);
 
-  const onDragEnd = (result) => {
+  const onDragEnd = useCallback((result) => {
     // dropped outside the list
     if (!result.destination) {
       return;
@@ -138,7 +137,22 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
     );
 
     replaceAndFilter(items);
-  };
+  }, [characters, replaceAndFilter]);
+
+  // Memoize the logical requirement options to avoid recalculating on every render
+  const logicalRequirementOptions = useMemo(() => {
+    const options = [];
+    characters.forEach((char) => {
+      char.states.forEach((state) => {
+        options.push({
+          characterId: char.id,
+          stateId: state.id,
+          label: getBestString(char.title, languages) + " - " + getBestString(state.title, languages),
+        });
+      });
+    });
+    return options;
+  }, [characters, languages]);
 
   const renderCharacter = (character, index) => {
     let media = "";
@@ -200,165 +214,163 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                 </h3>
               </AccordionSummary>
               <AccordionDetails className="sideBySide">
-                {media}
-                <FormControl component="fieldset" variant="standard" fullWidth>
-                  <CardContent>
-                    <FormControl
-                      component="fieldset"
-                      variant="standard"
-                      fullWidth
-                    >
-                      <FormLabel component="legend">Title</FormLabel>
-                      <FormGroup>
-                        {getMultipleLanguageInputs({
-                          item: character,
-                          field: "title",
-                          placeholder: "E.g. 'Color of the wings'",
-                          languages: languages,
-                          required: true,
-                          handleChange: setValue,
-                        })}
-                      </FormGroup>
-                    </FormControl>
+                {/* Only render content when expanded for performance */}
+                {expandedItem === character.id && (
+                  <>
+                    {media}
+                    <FormControl component="fieldset" variant="standard" fullWidth>
+                      <CardContent>
+                        <FormControl
+                          component="fieldset"
+                          variant="standard"
+                          fullWidth
+                        >
+                          <FormLabel component="legend">Title</FormLabel>
+                          <FormGroup>
+                            {getMultipleLanguageInputs({
+                              item: character,
+                              field: "title",
+                              placeholder: "E.g. 'Color of the wings'",
+                              languages: languages,
+                              required: true,
+                              handleChange: setValue,
+                            })}
+                          </FormGroup>
+                        </FormControl>
 
-                    <FormControl
-                      component="fieldset"
-                      variant="standard"
-                      fullWidth
-                    >
-                      <FormLabel component="legend">Description</FormLabel>
-                      <FormGroup>
-                        {getMultipleLanguageInputs({
-                          item: character,
-                          field: "description",
-                          placeholder: "Optional short further explanation",
-                          languages: languages,
-                          required: false,
-                          handleChange: setValue,
-                        })}
-                      </FormGroup>
-                    </FormControl>
+                        <FormControl
+                          component="fieldset"
+                          variant="standard"
+                          fullWidth
+                        >
+                          <FormLabel component="legend">Description</FormLabel>
+                          <FormGroup>
+                            {getMultipleLanguageInputs({
+                              item: character,
+                              field: "description",
+                              placeholder: "Optional short further explanation",
+                              languages: languages,
+                              required: false,
+                              handleChange: setValue,
+                            })}
+                          </FormGroup>
+                        </FormControl>
 
-                    <FormControl
-                      component="fieldset"
-                      variant="standard"
-                      fullWidth
-                    >
-                      <FormLabel component="legend">Description ID</FormLabel>
-                      <FormGroup>
-                        {getMultipleLanguageInputs({
-                          item: character,
-                          field: "descriptionUrl",
-                          placeholder: "The ID of a page at NBIC",
-                          languages: languages,
-                          required: false,
-                          handleChange: setValue,
-                        })}
-                      </FormGroup>
-                    </FormControl>
-                  </CardContent>
+                        <FormControl
+                          component="fieldset"
+                          variant="standard"
+                          fullWidth
+                        >
+                          <FormLabel component="legend">Description ID</FormLabel>
+                          <FormGroup>
+                            {getMultipleLanguageInputs({
+                              item: character,
+                              field: "descriptionUrl",
+                              placeholder: "The ID of a page at NBIC",
+                              languages: languages,
+                              required: false,
+                              handleChange: setValue,
+                            })}
+                          </FormGroup>
+                        </FormControl>
+                      </CardContent>
 
-                  <CardContent>
-                    <States
-                      clavis={clavis}
-                      character={character}
-                      newImage={newImage}
-                      replaceItem={replaceAndFilter}
-                      deleteItem={deleteItem}
-                      mediaElements={mediaElements}
-                    />
-                  </CardContent>
-                  <CardContent>
-                    <FormLabel component="legend">
-                      Logical requirement
-                    </FormLabel>
-                    <Select
-                      fullWidth
-                      sx={{ m: 0, marginY: "5px" }}
-                      id="taxon-parent"
-                      value={character["logicalPremise"] || false}
-                      onChange={(e) => {
-                        setValue(
-                          "logicalPremise",
-                          character,
-                          false,
-                          e.target.value
-                        );
-                      }}
-                    >
-                      <MenuItem value={false}>None</MenuItem>
-                      {characters.map((char) => {
-                        if (char["id"] !== character["id"]) {
-                          return char["states"].map((state) => {
-                            return (
-                              <MenuItem value={state["id"]}>
-                                {getBestString(char["title"], languages) +
-                                  " - " +
-                                  getBestString(state["title"], languages)}
-                              </MenuItem>
-                            );
-                          });
-                        }
-                        return true;
-                      })}
-                    </Select>
-                    <FormHelperText>
-                      A state that has to be true before this character can be
-                      asked about.
-                    </FormHelperText>
-                  </CardContent>
-                  <CardContent>
-                    <FormControl
-                      component="fieldset"
-                      variant="standard"
-                      fullWidth
-                    >
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              id={character.id + "_nonexclusive"}
-                              key={character.id + "_nonexclusive"}
-                              onChange={(e) => {
-                                setValue(
-                                  "type",
-                                  character,
-                                  false,
-                                  e.target.checked ? "non-exclusive" : undefined
-                                );
-                              }}
-                              checked={character.type === "non-exclusive"}
-                            />
-                          }
-                          label="Non-exclusive"
+                      <CardContent>
+                        <States
+                          clavis={clavis}
+                          character={character}
+                          newImage={newImage}
+                          replaceItem={replaceAndFilter}
+                          deleteItem={deleteItem}
+                          mediaElements={mediaElements}
                         />
-                      </FormGroup>
-                      <FormHelperText>
-                        Whether multiple states can be true simultaneously for
-                        this character.
-                      </FormHelperText>
-                    </FormControl>
-                  </CardContent>
+                      </CardContent>
+                      <CardContent>
+                        <FormLabel component="legend">
+                          Logical requirement
+                        </FormLabel>
+                        <Select
+                          fullWidth
+                          sx={{ m: 0, marginY: "5px" }}
+                          id="taxon-parent"
+                          value={character["logicalPremise"] || false}
+                          onChange={(e) => {
+                            setValue(
+                              "logicalPremise",
+                              character,
+                              false,
+                              e.target.value
+                            );
+                          }}
+                        >
+                          <MenuItem value={false}>None</MenuItem>
+                          {logicalRequirementOptions
+                            .filter((opt) => opt.characterId !== character.id)
+                            .map((opt) => (
+                              <MenuItem key={opt.stateId} value={opt.stateId}>
+                                {opt.label}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                        <FormHelperText>
+                          A state that has to be true before this character can be
+                          asked about.
+                        </FormHelperText>
+                      </CardContent>
+                      <CardContent>
+                        <FormControl
+                          component="fieldset"
+                          variant="standard"
+                          fullWidth
+                        >
+                          <FormGroup>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  id={character.id + "_nonexclusive"}
+                                  key={character.id + "_nonexclusive"}
+                                  onChange={(e) => {
+                                    setValue(
+                                      "type",
+                                      character,
+                                      false,
+                                      e.target.checked ? "non-exclusive" : undefined
+                                    );
+                                  }}
+                                  checked={character.type === "non-exclusive"}
+                                />
+                              }
+                              label="Non-exclusive"
+                            />
+                          </FormGroup>
+                          <FormHelperText>
+                            Whether multiple states can be true simultaneously for
+                            this character.
+                          </FormHelperText>
+                        </FormControl>
+                      </CardContent>
 
-                  <CardContent>
-                    <IconButton
-                      aria-label="delete"
-                      color={removing === character ? "error" : "default"}
-                      onClick={() => {
-                        if (removing === character) {
-                          remove(character);
-                        } else {
-                          setRemoving(character);
-                        }
-                      }}
-                      variant="contained"
-                      style={{ float: "right" }}
-                    >
-                      <DeleteIcon />
-                      {removing === character ? "Are you sure?" : ""}
-                    </IconButton>
-                  </CardContent>
-                </FormControl>
+                      <CardContent>
+                        <IconButton
+                          aria-label="delete"
+                          color={removing === character ? "error" : "default"}
+                          onClick={() => {
+                            if (removing === character) {
+                              remove(character);
+                            } else {
+                              setRemoving(character);
+                            }
+                          }}
+                          variant="contained"
+                          style={{ float: "right" }}
+                        >
+                          <DeleteIcon />
+                          {removing === character ? "Are you sure?" : ""}
+                        </IconButton>
+                      </CardContent>
+                    </FormControl>
+                  </>
+                )}
               </AccordionDetails>
             </Accordion>
           </div>
@@ -395,7 +407,7 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
           placeholder="Search by characters and states"
           onChange={(e) => {
             setSearchString(e.target.value);
-            setFiltered(search(deepClone(characters), e.target.value));
+            setFiltered(search(characters, e.target.value));
           }}
         />
       )}
@@ -447,4 +459,4 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
   );
 }
 
-export default Characters;
+export default memo(Characters);
