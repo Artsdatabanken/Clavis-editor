@@ -616,7 +616,7 @@ function Files({ clavis, setClavis }) {
 
       // if there is no parent, make a new one
       if (parentIndex === -1) {
-        let parent = JSON.parse(JSON.stringify(taxon));
+        let parent = structuredClone(taxon);
         delete parent.morph;
         parent.children = [];
         parent.id = "taxon:" + uuidv4().replaceAll("-", "");

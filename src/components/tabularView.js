@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import StatementTable from "./StatementTable";
@@ -19,9 +19,33 @@ function TabularView({
   const [currentCharacter, setCurrentCharacter] = useState(false);
   const [currentStatements, setCurrentStatements] = useState([]);
   const [statementsAreNew, setStatementsAreNew] = useState(false);
-  const [taxaFlattened, setTaxaFlattened] = useState([]);
-  const [statementsObject, setStatementsObject] = useState({});
   const [filterActive, setFilterActive] = useState(true);
+
+  // Memoize expensive computations - only recalculate when dependencies change
+  const taxaFlattened = useMemo(() => {
+    const flattened = flattenTaxa(clavis.taxa);
+    if (!taxonFilter.length || !filterActive) {
+      return flattened;
+    }
+    return flattened.filter((taxon) => taxonFilter.includes(taxon.id));
+  }, [clavis.taxa, taxonFilter, filterActive]);
+
+  const statementsObject = useMemo(() => {
+    const object = {};
+    clavis.statements.forEach((statement) => {
+      if (!object[statement.taxon]) {
+        object[statement.taxon] = {};
+      }
+      if (!object[statement.taxon][statement.character]) {
+        object[statement.taxon][statement.character] = {};
+      }
+      object[statement.taxon][statement.character][statement.value] = {
+        id: statement.id,
+        frequency: statement.frequency,
+      };
+    });
+    return object;
+  }, [clavis.statements]);
 
   /**
    * Sets the current character and taxon, and opens the statements for these, or creates
@@ -30,7 +54,7 @@ function TabularView({
    * @param {object} character - The character parameter.
    * @param {object} taxon - The taxon parameter.
    */
-  const openStatements = (character, taxon) => {
+  const openStatements = useCallback((character, taxon) => {
     let filteredStatements = [];
 
     if (
@@ -66,7 +90,7 @@ function TabularView({
         if (!filteredStatements.find((x) => x.value === state.id)) {
           let adding = {};
           adding.taxon = taxon.id;
-          adding.character = character.idsetStatementsAreNew;
+          adding.character = character.id;
           adding.value = state.id;
           adding.id = "statement:" + uuidv4().replaceAll("-", "");
           filteredStatements.push(adding);
@@ -77,27 +101,9 @@ function TabularView({
     setCurrentStatements(filteredStatements);
     setCurrentCharacter(character);
     setCurrentTaxon(taxon);
-  };
+  }, [statementsObject]);
 
-  const objectifyStatements = (statements) => {
-    let object = {};
-    statements.forEach((statement) => {
-      if (!object[statement.taxon]) {
-        object[statement.taxon] = {};
-      }
-      if (!object[statement.taxon][statement.character]) {
-        object[statement.taxon][statement.character] = {};
-      }
-      object[statement.taxon][statement.character][statement.value] = {
-        id: statement.id,
-        frequency: statement.frequency,
-      };
-    });
-
-    return object;
-  };
-
-  const setStatements = () => {
+  const setStatements = useCallback(() => {
     if (statementsAreNew) {
       console.log(currentStatements);
       replaceItem(deepClone(clavis.statements).concat(currentStatements));
@@ -107,69 +113,29 @@ function TabularView({
 
     setCurrentStatements([]);
     setStatementsAreNew(false);
-  };
+  }, [statementsAreNew, currentStatements, replaceItem, clavis.statements]);
 
   /**
    * Deletes the current statements and updates the state.
    *
    * @return {undefined} No return value
    */
-  const deleteStatements = () => {
+  const deleteStatements = useCallback(() => {
     replaceItem(deleteItem(currentStatements), "statements");
     setCurrentStatements([]);
     setStatementsAreNew(false);
-  };
+  }, [replaceItem, deleteItem, currentStatements]);
 
-  const setStatementValue = (field, fact, value) => {
+  const setStatementValue = useCallback((field, fact, value) => {
     setCurrentStatements(
       changeStatement(currentStatements, fact.id, value, currentCharacter)
     );
+  }, [currentStatements, currentCharacter]);
 
-    // setCurrentStatements(currentStatements.map(statement => {
-    //     if (fact.id === statement.id) {
-    //         fact[field] = value
-    //         return fact
-    //     }
-    //     else if (field === "frequency" && value === 1 && (currentCharacter.type !== "exclusive" || currentCharacter.type)) {
-    //         statement["frequency"] = 0
-    //     }
-    //     else if (field === "frequency" && value > 0 && (currentCharacter.type !== "exclusive" || currentCharacter.type) && statement["frequency"] === 1) {
-    //         statement["frequency"] = .5
-    //     }
-
-    //     return statement
-    // }))
-  };
-
+  // Clear loading state on mount
   useEffect(() => {
-    const filterTaxa = (flattenedTaxa, filter) => {
-      if (!filter.length || !filterActive) {
-        return flattenedTaxa;
-      }
-
-      let newTaxa = [];
-
-      flattenedTaxa.forEach((taxon) => {
-        if (filter.includes(taxon.id)) {
-          newTaxa.push(taxon);
-        }
-      });
-      return newTaxa;
-    };
-
     setLoadingPage("");
-
-    setTaxaFlattened(filterTaxa(flattenTaxa(clavis.taxa), taxonFilter));
-
-    setStatementsObject(objectifyStatements(clavis.statements));
-  }, [
-    setLoadingPage,
-    clavis.taxa,
-    clavis.statements,
-    clavis.language,
-    taxonFilter,
-    filterActive,
-  ]);
+  }, [setLoadingPage]);
 
   return (
     <div>

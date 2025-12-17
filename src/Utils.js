@@ -514,7 +514,9 @@ export const deepClone = (item) => {
   if (!item) {
     return item;
   }
-  return JSON.parse(JSON.stringify(item));
+  // structuredClone is faster than JSON.parse(JSON.stringify())
+  // and handles more data types correctly
+  return structuredClone(item);
 };
 
 export const changeStatement = (
