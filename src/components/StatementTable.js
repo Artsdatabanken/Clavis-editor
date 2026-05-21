@@ -1,6 +1,6 @@
 import React, { useState, useCallback, memo } from "react";
 
-import { getBestString, getStatementIcon } from "../Utils";
+import { getBestString, getStatementIcon, getNumericalDisplay } from "../Utils";
 
 import Card from "@mui/material/Card";
 
@@ -202,6 +202,94 @@ function StatementTable({
     </>
   );
 
+  // Component for rendering numerical character values
+  const NumericalStatements = ({ character }) => {
+    let lastLevel = "";
+    let lastResult;
+
+    return taxaFlattened.map((taxon) => {
+      const hasStatement =
+        statementsObject[taxon.id] &&
+        statementsObject[taxon.id][character.id];
+
+      if (hasStatement) {
+        // Get the first (and should be only) statement for this numerical character
+        const statementData = Object.values(
+          statementsObject[taxon.id][character.id]
+        )[0];
+        lastLevel = taxon.level;
+        lastResult = statementData;
+
+        return (
+          <td
+            key={taxon.id + character.id}
+            onClick={() => openStatements(character, taxon)}
+            style={{
+              cursor: "pointer",
+              border: "1px solid grey",
+              textAlign: "center",
+              fontSize: "11px",
+              backgroundColor:
+                "rgba(255, 255, 0, " +
+                (0.5 * (highlightedTaxon === taxon.id) +
+                  0.5 * (highlightedCharacter === character.id)) **
+                  2 +
+                ")",
+            }}
+          >
+            {getNumericalDisplay(statementData.value, character, languages)}
+          </td>
+        );
+      }
+
+      // Check for inheritance from parent
+      if (lastResult !== undefined && lastLevel.length < taxon.level.length) {
+        return (
+          <td
+            key={taxon.id + character.id}
+            style={{
+              cursor: "not-allowed",
+              border: "1px solid grey",
+              opacity: "0.3",
+              color: "lightgrey",
+              textAlign: "center",
+              fontSize: "11px",
+              backgroundColor:
+                "rgba(255, 255, 0, " +
+                (0.5 * (highlightedTaxon === taxon.id) +
+                  0.5 * (highlightedCharacter === character.id)) **
+                  2 +
+                ")",
+            }}
+          >
+            {getNumericalDisplay(lastResult.value, character, languages)}
+          </td>
+        );
+      }
+
+      lastLevel = taxon.level;
+      lastResult = undefined;
+
+      return (
+        <td
+          key={taxon.id + character.id}
+          onClick={() => openStatements(character, taxon)}
+          style={{
+            cursor: "pointer",
+            border: "1px solid grey",
+            textAlign: "center",
+            backgroundColor:
+              "rgba(255, 255, 0, " +
+              (0.5 * (highlightedTaxon === taxon.id) +
+                0.5 * (highlightedCharacter === character.id)) **
+                2 +
+              ")",
+          }}
+        ></td>
+      );
+    });
+  };
+
   const Characters = () => (
     <>
       {characters.map((character) => (
@@ -225,9 +313,17 @@ function StatementTable({
               <span style={{ fontWeight: "bold" }}>
                 {getBestString(character.title, languages)}
               </span>
+              {character.type === "numerical" && character.unit && (
+                <span style={{ fontWeight: "normal", marginLeft: "4px", color: "#666" }}>
+                  ({getBestString(character.unit, languages)})
+                </span>
+              )}
             </td>
+            {character.type === "numerical" && (
+              <NumericalStatements character={character} />
+            )}
           </tr>
-          <States character={character} />
+          {character.type !== "numerical" && <States character={character} />}
         </React.Fragment>
       ))}
     </>

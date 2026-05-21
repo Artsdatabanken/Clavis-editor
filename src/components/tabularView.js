@@ -39,9 +39,14 @@ function TabularView({
       if (!object[statement.taxon][statement.character]) {
         object[statement.taxon][statement.character] = {};
       }
-      object[statement.taxon][statement.character][statement.value] = {
+      // For numerical characters, value is an array - stringify it for use as key
+      const valueKey = Array.isArray(statement.value)
+        ? JSON.stringify(statement.value)
+        : statement.value;
+      object[statement.taxon][statement.character][valueKey] = {
         id: statement.id,
         frequency: statement.frequency,
+        value: statement.value, // Store original value for display
       };
     });
     return object;
@@ -57,45 +62,85 @@ function TabularView({
   const openStatements = useCallback((character, taxon) => {
     let filteredStatements = [];
 
-    if (
-      statementsObject[taxon.id] &&
-      statementsObject[taxon.id][character.id]
-    ) {
-      for (const [key, value] of Object.entries(
+    // Handle numerical characters differently
+    if (character.type === "numerical") {
+      if (
+        statementsObject[taxon.id] &&
         statementsObject[taxon.id][character.id]
-      )) {
+      ) {
+        // For numerical characters, there should be one statement with value as key
+        for (const [key, value] of Object.entries(
+          statementsObject[taxon.id][character.id]
+        )) {
+          // The key for numerical is the stringified array, parse it back
+          let parsedValue;
+          try {
+            parsedValue = JSON.parse(key);
+          } catch {
+            parsedValue = [null, null];
+          }
+          filteredStatements.push({
+            taxon: taxon.id,
+            character: character.id,
+            value: parsedValue,
+            frequency: value.frequency,
+            id: value.id,
+          });
+        }
+      }
+
+      if (!filteredStatements.length) {
+        setStatementsAreNew(true);
+        // Create a new numerical statement with empty range
         filteredStatements.push({
           taxon: taxon.id,
           character: character.id,
-          value: key,
-          frequency: value.frequency,
-          id: value.id,
+          value: [null, null], // [min, max] range for this taxon
+          id: "statement:" + uuidv4().replaceAll("-", ""),
         });
       }
-    }
+    } else {
+      // Original categorical character logic
+      if (
+        statementsObject[taxon.id] &&
+        statementsObject[taxon.id][character.id]
+      ) {
+        for (const [key, value] of Object.entries(
+          statementsObject[taxon.id][character.id]
+        )) {
+          filteredStatements.push({
+            taxon: taxon.id,
+            character: character.id,
+            value: key,
+            frequency: value.frequency,
+            id: value.id,
+          });
+        }
+      }
 
-    if (!filteredStatements.length) {
-      setStatementsAreNew(true);
+      if (!filteredStatements.length) {
+        setStatementsAreNew(true);
 
-      character.states.forEach((state) => {
-        let adding = {};
-        adding.taxon = taxon.id;
-        adding.character = character.id;
-        adding.value = state.id;
-        adding.id = "statement:" + uuidv4().replaceAll("-", "");
-        filteredStatements.push(adding);
-      });
-    } else if (filteredStatements.length < character.states.length) {
-      character.states.forEach((state) => {
-        if (!filteredStatements.find((x) => x.value === state.id)) {
+        character.states.forEach((state) => {
           let adding = {};
           adding.taxon = taxon.id;
           adding.character = character.id;
           adding.value = state.id;
           adding.id = "statement:" + uuidv4().replaceAll("-", "");
           filteredStatements.push(adding);
-        }
-      });
+        });
+      } else if (filteredStatements.length < character.states.length) {
+        character.states.forEach((state) => {
+          if (!filteredStatements.find((x) => x.value === state.id)) {
+            let adding = {};
+            adding.taxon = taxon.id;
+            adding.character = character.id;
+            adding.value = state.id;
+            adding.id = "statement:" + uuidv4().replaceAll("-", "");
+            filteredStatements.push(adding);
+          }
+        });
+      }
     }
 
     setCurrentStatements(filteredStatements);
@@ -103,12 +148,14 @@ function TabularView({
     setCurrentTaxon(taxon);
   }, [statementsObject]);
 
-  const setStatements = useCallback(() => {
+  const setStatements = useCallback((statementsToSave) => {
+    // Allow passing statements directly (for numerical characters) or use current state
+    const statements = statementsToSave || currentStatements;
     if (statementsAreNew) {
-      console.log(currentStatements);
-      replaceItem(deepClone(clavis.statements).concat(currentStatements));
+      console.log(statements);
+      replaceItem(deepClone(clavis.statements).concat(statements));
     } else {
-      replaceItem(currentStatements, null, true);
+      replaceItem(statements, null, true);
     }
 
     setCurrentStatements([]);
@@ -127,9 +174,19 @@ function TabularView({
   }, [replaceItem, deleteItem, currentStatements]);
 
   const setStatementValue = useCallback((field, fact, value) => {
-    setCurrentStatements(
-      changeStatement(currentStatements, fact.id, value, currentCharacter)
-    );
+    if (field === "value") {
+      // For numerical characters, update the value directly
+      setCurrentStatements(
+        currentStatements.map((s) =>
+          s.id === fact.id ? { ...s, value: value } : s
+        )
+      );
+    } else {
+      // For frequency changes (categorical characters)
+      setCurrentStatements(
+        changeStatement(currentStatements, fact.id, value, currentCharacter)
+      );
+    }
   }, [currentStatements, currentCharacter]);
 
   // Clear loading state on mount

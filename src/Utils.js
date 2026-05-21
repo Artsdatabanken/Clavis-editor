@@ -703,6 +703,42 @@ export const getStatementIcon = (freq) => {
   return "";
 };
 
+/**
+ * Formats a numerical value for display in the table.
+ * @param {Array|null} value - The numerical range [min, max]
+ * @param {object} character - The character object (for unit)
+ * @param {Array} languages - Available languages
+ * @returns {string} Formatted display string
+ */
+export const getNumericalDisplay = (value, character, languages) => {
+  if (!Array.isArray(value)) {
+    return "";
+  }
+
+  const [min, max] = value;
+
+  if (min == null && max == null) {
+    return "";
+  }
+
+  if (min != null && max != null) {
+    if (min === max) {
+      return String(min);
+    }
+    return `${min}–${max}`;
+  }
+
+  if (min != null) {
+    return `≥${min}`;
+  }
+
+  if (max != null) {
+    return `≤${max}`;
+  }
+
+  return "";
+};
+
 export const printTaxonName = (
   taxon,
   language,

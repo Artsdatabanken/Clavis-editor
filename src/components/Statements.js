@@ -68,12 +68,21 @@ function Statements({
     statements = deepClone(statements);
     const character = characters.find((x) => x.id === newItem.character);
 
-    character.states.forEach((state) => {
+    if (character.type === "numerical") {
+      // For numerical characters, create a single statement with an array value
       let adding = deepClone(newItem);
-      adding.value = state.id;
+      adding.value = [null, null]; // [min, max] range
       adding.id = "statement:" + uuidv4().replaceAll("-", "");
       statements.push(adding);
-    });
+    } else {
+      // For categorical characters, create one statement per state
+      character.states.forEach((state) => {
+        let adding = deepClone(newItem);
+        adding.value = state.id;
+        adding.id = "statement:" + uuidv4().replaceAll("-", "");
+        statements.push(adding);
+      });
+    }
 
     replaceItem(statements);
     setFiltered(statements);

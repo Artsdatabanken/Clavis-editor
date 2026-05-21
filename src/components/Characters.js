@@ -143,6 +143,8 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
   const logicalRequirementOptions = useMemo(() => {
     const options = [];
     characters.forEach((char) => {
+      // Skip numerical characters (they don't have states)
+      if (char.type === "numerical" || !char.states) return;
       char.states.forEach((state) => {
         options.push({
           characterId: char.id,
@@ -276,15 +278,142 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                       </CardContent>
 
                       <CardContent>
-                        <States
-                          clavis={clavis}
-                          character={character}
-                          newImage={newImage}
-                          replaceItem={replaceAndFilter}
-                          deleteItem={deleteItem}
-                          mediaElements={mediaElements}
-                        />
+                        <FormControl
+                          component="fieldset"
+                          variant="standard"
+                          fullWidth
+                        >
+                          <FormGroup>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  id={character.id + "_numerical"}
+                                  key={character.id + "_numerical"}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      // Switching to numerical - set type and remove states
+                                      let c = structuredClone(character);
+                                      c.type = "numerical";
+                                      delete c.states;
+                                      replaceAndFilter(c);
+                                    } else {
+                                      // Switching to categorical - remove numerical properties, add states
+                                      let c = structuredClone(character);
+                                      delete c.type;
+                                      delete c.min;
+                                      delete c.max;
+                                      delete c.stepSize;
+                                      delete c.unit;
+                                      c.states = [];
+                                      replaceAndFilter(c);
+                                    }
+                                  }}
+                                  checked={character.type === "numerical"}
+                                />
+                              }
+                              label="Numerical character"
+                            />
+                          </FormGroup>
+                          <FormHelperText>
+                            Whether this character uses numerical values instead of categorical states.
+                          </FormHelperText>
+                        </FormControl>
                       </CardContent>
+
+                      {character.type === "numerical" ? (
+                        <CardContent>
+                          <FormControl
+                            component="fieldset"
+                            variant="standard"
+                            fullWidth
+                          >
+                            <FormLabel component="legend">Numerical settings</FormLabel>
+                            <FormGroup row style={{ gap: "16px", marginTop: "8px" }}>
+                              <TextField
+                                label="Min"
+                                type="number"
+                                value={character.min ?? ""}
+                                onChange={(e) => {
+                                  setValue(
+                                    "min",
+                                    character,
+                                    false,
+                                    e.target.value === "" ? undefined : parseFloat(e.target.value)
+                                  );
+                                }}
+                                style={{ width: "120px" }}
+                                InputProps={{ inputProps: { step: "any" } }}
+                              />
+                              <TextField
+                                label="Max"
+                                type="number"
+                                value={character.max ?? ""}
+                                onChange={(e) => {
+                                  setValue(
+                                    "max",
+                                    character,
+                                    false,
+                                    e.target.value === "" ? undefined : parseFloat(e.target.value)
+                                  );
+                                }}
+                                style={{ width: "120px" }}
+                                InputProps={{ inputProps: { step: "any" } }}
+                              />
+                              <TextField
+                                label="Step size"
+                                type="number"
+                                value={character.stepSize ?? ""}
+                                onChange={(e) => {
+                                  setValue(
+                                    "stepSize",
+                                    character,
+                                    false,
+                                    e.target.value === "" ? undefined : parseFloat(e.target.value)
+                                  );
+                                }}
+                                style={{ width: "120px" }}
+                                InputProps={{ inputProps: { step: "any", min: 0 } }}
+                              />
+                            </FormGroup>
+                            <FormHelperText>
+                              Define the valid range and increment for numerical values.
+                            </FormHelperText>
+                          </FormControl>
+
+                          <FormControl
+                            component="fieldset"
+                            variant="standard"
+                            fullWidth
+                            style={{ marginTop: "16px" }}
+                          >
+                            <FormLabel component="legend">Unit</FormLabel>
+                            <FormGroup>
+                              {getMultipleLanguageInputs({
+                                item: character,
+                                field: "unit",
+                                placeholder: "E.g. 'mm' or 'meters'",
+                                languages: languages,
+                                required: false,
+                                handleChange: setValue,
+                              })}
+                            </FormGroup>
+                            <FormHelperText>
+                              The unit of measurement (can be localized).
+                            </FormHelperText>
+                          </FormControl>
+                        </CardContent>
+                      ) : (
+                        <CardContent>
+                          <States
+                            clavis={clavis}
+                            character={character}
+                            newImage={newImage}
+                            replaceItem={replaceAndFilter}
+                            deleteItem={deleteItem}
+                            mediaElements={mediaElements}
+                          />
+                        </CardContent>
+                      )}
                       <CardContent>
                         <FormLabel component="legend">
                           Logical requirement
@@ -317,38 +446,40 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
                           asked about.
                         </FormHelperText>
                       </CardContent>
-                      <CardContent>
-                        <FormControl
-                          component="fieldset"
-                          variant="standard"
-                          fullWidth
-                        >
-                          <FormGroup>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  id={character.id + "_nonexclusive"}
-                                  key={character.id + "_nonexclusive"}
-                                  onChange={(e) => {
-                                    setValue(
-                                      "type",
-                                      character,
-                                      false,
-                                      e.target.checked ? "non-exclusive" : undefined
-                                    );
-                                  }}
-                                  checked={character.type === "non-exclusive"}
-                                />
-                              }
-                              label="Non-exclusive"
-                            />
-                          </FormGroup>
-                          <FormHelperText>
-                            Whether multiple states can be true simultaneously for
-                            this character.
-                          </FormHelperText>
-                        </FormControl>
-                      </CardContent>
+                      {character.type !== "numerical" && (
+                        <CardContent>
+                          <FormControl
+                            component="fieldset"
+                            variant="standard"
+                            fullWidth
+                          >
+                            <FormGroup>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    id={character.id + "_nonexclusive"}
+                                    key={character.id + "_nonexclusive"}
+                                    onChange={(e) => {
+                                      setValue(
+                                        "type",
+                                        character,
+                                        false,
+                                        e.target.checked ? "non-exclusive" : undefined
+                                      );
+                                    }}
+                                    checked={character.type === "non-exclusive"}
+                                  />
+                                }
+                                label="Non-exclusive"
+                              />
+                            </FormGroup>
+                            <FormHelperText>
+                              Whether multiple states can be true simultaneously for
+                              this character.
+                            </FormHelperText>
+                          </FormControl>
+                        </CardContent>
+                      )}
 
                       <CardContent>
                         <IconButton
@@ -385,10 +516,11 @@ function Characters({ clavis, newImage, replaceItem, deleteItem }) {
 
       <Alert severity="info">
         <AlertTitle>About characters</AlertTitle>
-        Characters are properties that can be tied to taxa, for example "Color
-        of the ears". The possible values of such a property, such as "Red",
-        "Green", "Black", are the states belonging to the character. One can
-        view characters as questions, where the states are the possible answers.
+        Characters are properties that can be tied to taxa. They can be either
+        categorical (with discrete states like "Red", "Green", "Black") or
+        numerical (with a range like "10-20 mm"). For categorical characters,
+        states are the possible answers. For numerical characters, you can
+        define a valid range with min/max values, step size, and unit.
       </Alert>
 
       {!!languages.length && !!characters.length && (

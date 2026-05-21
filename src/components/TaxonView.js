@@ -13,24 +13,48 @@ function TaxonView({ clavis, taxonFilter }) {
   const [filterActive, setFilterActive] = useState(true);
 
   const showCharacter = (character, statements) => {
+    const isNumerical = character.type === "numerical";
+
     return (
       <Card key={character.id + statements[0].id} className="formCard">
         <CardContent>
-          <h3>{character.title[clavis.language[0]]}</h3>
-          {character.states.map((state) => {
-            let statement = statements.find(
-              (statement) => statement.value === state.id
-            );
-            if (!!statement) {
-              return (
-                <p key={statement.id}>
-                  {getStatementIcon(statement.frequency)}{" "}
-                  {state.title[clavis.language[0]]}
-                </p>
+          <h3>
+            {character.title[clavis.language[0]]}
+            {isNumerical && character.unit && (
+              <span style={{ fontWeight: "normal", marginLeft: "4px", color: "#666" }}>
+                ({character.unit[clavis.language[0]] || Object.values(character.unit)[0]})
+              </span>
+            )}
+          </h3>
+          {isNumerical ? (
+            // Display numerical value
+            statements.map((statement) => {
+              const value = statement.value;
+              if (Array.isArray(value) && (value[0] != null || value[1] != null)) {
+                const display = value[0] === value[1]
+                  ? String(value[0])
+                  : `${value[0] ?? "?"} – ${value[1] ?? "?"}`;
+                return <p key={statement.id}>{display}</p>;
+              }
+              return null;
+            })
+          ) : (
+            // Display categorical states
+            character.states?.map((state) => {
+              let statement = statements.find(
+                (statement) => statement.value === state.id
               );
-            }
-            return null;
-          })}
+              if (!!statement) {
+                return (
+                  <p key={statement.id}>
+                    {getStatementIcon(statement.frequency)}{" "}
+                    {state.title[clavis.language[0]]}
+                  </p>
+                );
+              }
+              return null;
+            })
+          )}
         </CardContent>
       </Card>
     );

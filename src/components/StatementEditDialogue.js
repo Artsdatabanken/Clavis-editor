@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
 import {
   Dialog,
@@ -8,6 +8,8 @@ import {
   DialogActions,
   Button,
   ButtonGroup,
+  TextField,
+  FormGroup,
 } from "@mui/material";
 
 import {
@@ -24,33 +26,139 @@ function StatementEditDialogue({
   setStatements,
   deleteStatements,
 }) {
-
-
   const language = languages[0];
+  const isNumerical = currentCharacter?.type === "numerical";
 
+  // Local state for numerical inputs - only synced to parent on Save
+  const [numericalValues, setNumericalValues] = useState({});
 
-  const EditDialog = () => {
-    if (!currentStatements.length) {
-      return null;
+  // Initialize local numerical values when dialog opens
+  const hasStatements = currentStatements.length > 0;
+  useEffect(() => {
+    if (isNumerical && hasStatements) {
+      const initial = {};
+      currentStatements.forEach((fact) => {
+        const value = fact.value;
+        initial[fact.id] = {
+          min: Array.isArray(value) && value[0] != null ? String(value[0]) : "",
+          max: Array.isArray(value) && value[1] != null ? String(value[1]) : "",
+        };
+      });
+      setNumericalValues(initial);
     }
+  }, [isNumerical, hasStatements]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Only run on open (hasStatements change), not on currentStatements content changes
 
-    return (
-      <Dialog open={true}>
-        <DialogTitle>Set statement</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Specify the character for this taxon
-          </DialogContentText>
+  const handleNumericalChange = (factId, field, value) => {
+    setNumericalValues((prev) => ({
+      ...prev,
+      [factId]: {
+        ...prev[factId],
+        [field]: value,
+      },
+    }));
+  };
 
-          <p>
-            <b>Taxon:</b>&nbsp;
-            {currentTaxon.scientificName || currentTaxon.label[language]}
-          </p>
+  const handleSave = () => {
+    if (isNumerical) {
+      // Update currentStatements with local numerical values and pass directly to save
+      const updatedStatements = currentStatements.map((fact) => {
+        const values = numericalValues[fact.id];
+        if (values) {
+          const min = values.min === "" ? null : parseFloat(values.min);
+          const max = values.max === "" ? null : parseFloat(values.max);
+          return { ...fact, value: [min, max] };
+        }
+        return fact;
+      });
+      // Pass updated statements directly to setStatements
+      setStatements(updatedStatements);
+    } else {
+      setStatements();
+    }
+  };
 
-          <p>
-            <b>Character:</b>&nbsp;
-            {getBestString(currentCharacter.title, languages)}
-          </p>
+  if (!currentStatements.length) {
+    return null;
+  }
+
+  return (
+    <Dialog open={true}>
+      <DialogTitle>Set statement</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {isNumerical
+            ? "Specify the numerical range for this taxon"
+            : "Specify the character for this taxon"}
+        </DialogContentText>
+
+        <p>
+          <b>Taxon:</b>&nbsp;
+          {currentTaxon.scientificName || currentTaxon.label?.[language]}
+        </p>
+
+        <p>
+          <b>Character:</b>&nbsp;
+          {getBestString(currentCharacter.title, languages)}
+          {isNumerical && currentCharacter.unit && (
+            <span style={{ color: "#666" }}>
+              {" "}({getBestString(currentCharacter.unit, languages)})
+            </span>
+          )}
+        </p>
+
+        {isNumerical ? (
+          // Numerical character input - uses local state, no parent rerenders
+          <div style={{ marginTop: "16px" }}>
+            {currentStatements.map((fact) => (
+              <div key={fact.id}>
+                <FormGroup row style={{ gap: "16px", alignItems: "center" }}>
+                  <TextField
+                    label="Min"
+                    type="number"
+                    value={numericalValues[fact.id]?.min ?? ""}
+                    onChange={(e) => handleNumericalChange(fact.id, "min", e.target.value)}
+                    style={{ width: "120px" }}
+                    InputProps={{
+                      inputProps: {
+                        step: currentCharacter.stepSize || "any",
+                        min: currentCharacter.min,
+                        max: currentCharacter.max,
+                      },
+                    }}
+                  />
+                  <span>–</span>
+                  <TextField
+                    label="Max"
+                    type="number"
+                    value={numericalValues[fact.id]?.max ?? ""}
+                    onChange={(e) => handleNumericalChange(fact.id, "max", e.target.value)}
+                    style={{ width: "120px" }}
+                    InputProps={{
+                      inputProps: {
+                        step: currentCharacter.stepSize || "any",
+                        min: currentCharacter.min,
+                        max: currentCharacter.max,
+                      },
+                    }}
+                  />
+                  {currentCharacter.unit && (
+                    <span style={{ color: "#666" }}>
+                      {getBestString(currentCharacter.unit, languages)}
+                    </span>
+                  )}
+                </FormGroup>
+                {currentCharacter.min != null && currentCharacter.max != null && (
+                  <p style={{ fontSize: "12px", color: "#666", marginTop: "8px" }}>
+                    Valid range: {currentCharacter.min} – {currentCharacter.max}
+                    {currentCharacter.unit && ` ${getBestString(currentCharacter.unit, languages)}`}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Categorical character input (original)
           <div style={{ flexGrow: "1" }}>
             {currentStatements.map((fact) => (
               <div
@@ -98,45 +206,30 @@ function StatementEditDialogue({
               </div>
             ))}
           </div>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setCurrentStatements([]);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              deleteStatements();
-            }}
-          >
-            Delete
-          </Button>
-          <Button
-            onClick={() => {
-              setStatements();
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    )
-  };
-
-  useEffect(() => {
-
-    console.log("Dialogue mounted");
-
-    return () => {
-      console.log("Dialogue unmounted");
-    }
-  }, []);
-
-  return (
-    <EditDialog />
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={() => {
+            setCurrentStatements([]);
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={() => {
+            deleteStatements();
+          }}
+        >
+          Delete
+        </Button>
+        <Button
+          onClick={handleSave}
+        >
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
