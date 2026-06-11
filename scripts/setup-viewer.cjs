@@ -94,14 +94,20 @@ try {
   // Copy built files to node_modules
   console.log('\nCopying to node_modules...\n');
 
-  // Wipe the npm-installed viewer-web (latest published) entirely. Otherwise its
-  // nested node_modules/react and other transitive artifacts persist alongside
-  // the new dist, and Vite ends up bundling two Reacts → React error #525
-  // ('A React Element from an older version of React was rendered').
-  fs.rmSync(viewerPath, { recursive: true, force: true });
-  fs.mkdirSync(viewerPath, { recursive: true });
+  // The npm-installed viewer-web (latest published) declares react in its
+  // dependencies (^18). The editor itself needs react ^19, so npm has to nest
+  // react@18 inside viewer-web/node_modules to satisfy both — and that nested
+  // copy ends up bundled alongside the top-level react@19, producing React
+  // error #525 at runtime. Wipe just the conflicting packages; the other
+  // nested transitives are fine — Vite walks up to the top level anyway.
+  const nestedNm = path.join(viewerPath, 'node_modules');
+  for (const pkg of ['react', 'react-dom']) {
+    const p = path.join(nestedNm, pkg);
+    if (fs.existsSync(p)) fs.rmSync(p, { recursive: true, force: true });
+  }
 
   const targetDist = path.join(viewerPath, 'dist');
+  if (fs.existsSync(targetDist)) fs.rmSync(targetDist, { recursive: true });
   fs.cpSync(tempDist, targetDist, { recursive: true });
   fs.copyFileSync(path.join(tempDir, 'package.json'), path.join(viewerPath, 'package.json'));
 
