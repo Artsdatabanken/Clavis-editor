@@ -94,15 +94,22 @@ try {
   // Copy built files to node_modules
   console.log('\nCopying to node_modules...\n');
 
+  // Wipe the npm-installed viewer-web (latest published) entirely. Otherwise its
+  // nested node_modules/react and other transitive artifacts persist alongside
+  // the new dist, and Vite ends up bundling two Reacts → React error #525
+  // ('A React Element from an older version of React was rendered').
+  fs.rmSync(viewerPath, { recursive: true, force: true });
+  fs.mkdirSync(viewerPath, { recursive: true });
+
   const targetDist = path.join(viewerPath, 'dist');
-  if (fs.existsSync(targetDist)) fs.rmSync(targetDist, { recursive: true });
   fs.cpSync(tempDist, targetDist, { recursive: true });
   fs.copyFileSync(path.join(tempDir, 'package.json'), path.join(viewerPath, 'package.json'));
 
-  // Clear webpack cache so changes are picked up
-  const cacheDir = path.join(projectRoot, 'node_modules', '.cache');
+  // Vite caches resolved modules under node_modules/.vite. Stale entries
+  // pointing at the just-wiped viewer-web break the next build.
+  const cacheDir = path.join(projectRoot, 'node_modules', '.vite');
   if (fs.existsSync(cacheDir)) {
-    console.log('Clearing webpack cache...');
+    console.log('Clearing .vite cache...');
     fs.rmSync(cacheDir, { recursive: true });
   }
 
