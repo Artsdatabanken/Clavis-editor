@@ -24,7 +24,7 @@ import YardIcon from "@mui/icons-material/Yard";
 import FilterAltIcon  from "@mui/icons-material/FilterAlt";
 
 
-import { ReactComponent as Logo } from "./Logo.svg";
+import Logo from "./Logo.svg?react";
 import CircularProgress from "@mui/material/CircularProgress";
 
 function MenuBar({ loadingPage, setLoadingPage }) {

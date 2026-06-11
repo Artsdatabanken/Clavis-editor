@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -11,7 +11,6 @@ import { IconButton, Avatar, Button, FormHelperText } from "@mui/material";
 
 import {
   getImgSrc,
-  deepClone,
   reorder,
   getDraggableItemStyle,
   getMultipleLanguageInputs
@@ -32,7 +31,7 @@ function States({
   const [removing, setRemoving] = useState(false);
 
   // Sets or adds the value of a field in the character. Can have a language and/or an external service
-  const setValue = (field, item, l, value, service) => {
+  const setValue = useCallback((field, item, l, value, service) => {
     if (l) {
       if (!(field in item)) {
         item[field] = {};
@@ -56,10 +55,10 @@ function States({
       }
     }
     replaceItem(item);
-  };
+  }, [replaceItem]);
 
-  const addState = () => {
-    let c = deepClone(clavis);
+  const addState = useCallback(() => {
+    let c = structuredClone(clavis);
 
     const id = "state:" + uuidv4().replaceAll("-", "");
 
@@ -95,32 +94,29 @@ function States({
         ]))
     );
     replaceItem(c);
-  };
+  }, [clavis, character.id, statements, replaceItem]);
 
-  const remove = (state) => {
-    let c = deepClone(clavis);
+  const remove = useCallback((state) => {
+    let c = structuredClone(clavis);
     c.statements = c.statements.filter((s) => s.value !== state.id);
     c.characters.map((c) => {
       c.states = c.states.filter((s) => s.id !== state.id);
       return c;
     });
     replaceItem(c);
-
-    // replaceItem(deleteItem(state))
-    // replaceItem(deepClone(statements).filter(x => x.value !== state.id))
-  };
+  }, [clavis, replaceItem]);
 
   // Adds an (existing) image to an item by referring to its id. Generic enough for copy-paste
-  const addImage = (imageId) => {
+  const addImage = useCallback((imageId) => {
     if (imageId !== false) {
       addingImageTo["media"] = imageId;
       replaceItem(addingImageTo);
     }
 
     setAddingImageTo(false);
-  };
+  }, [addingImageTo, replaceItem]);
 
-  const onDragEnd = (result) => {
+  const onDragEnd = useCallback((result) => {
     // dropped outside the list
     if (!result.destination) {
       return;
@@ -134,7 +130,7 @@ function States({
 
     character["states"] = items;
     replaceItem(character);
-  };
+  }, [character, replaceItem]);
 
   const renderState = (state, index) => {
     let media = "";
@@ -263,4 +259,4 @@ function States({
   );
 }
 
-export default States;
+export default memo(States);

@@ -105,6 +105,9 @@ function Analyze({ clavis, setLoadingPage }) {
 
   const getIncompleteStatements = () => {
     let result = clavis.characters.filter((character) => {
+      // Skip numerical characters (they don't have states to count)
+      if (character.type === "numerical" || !character.states) return false;
+
       // Get all statements for this character
       let statements = clavis.statements
         .filter((statement) => statement.frequency >= 0)
@@ -133,6 +136,9 @@ function Analyze({ clavis, setLoadingPage }) {
     let errors = [];
 
     clavis.characters.forEach((character) => {
+      // Skip numerical characters (validation rules don't apply)
+      if (character.type === "numerical" || !character.states) return;
+
       // Get all statements for this character
       let statements = clavis.statements
         .filter((statement) => statement.frequency >= 0)

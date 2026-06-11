@@ -14,8 +14,7 @@ import JsonView from "./components/JsonView";
 import TestView from "./components/TestView";
 import TaxonView from "./components/TaxonView";
 import { v4 as uuidv4 } from "uuid";
-import moment from "moment";
-import { deepClone } from "./Utils";
+import { deepClone, nowString } from "./Utils";
 import TabularView from "./components/tabularView";
 import Analyze from "./components/Analyze";
 import TaxonFilter from "./components/TaxonFilter";
@@ -29,7 +28,7 @@ function App() {
     $schema:
       "https://raw.githubusercontent.com/WouterKoch/Clavis/main/Schema/Clavis.json",
     identifier: uuidv4(),
-    lastModified: moment().format("YYYY-MM-DD HH:mm:ss"),
+    lastModified: nowString(),
     language: [],
     title: {},
     externalServices: [
@@ -215,6 +214,7 @@ function App() {
       // For some reason find() and includes() does not work here...
       let character;
       deepClone(c.characters).forEach((char) => {
+        if (!char.states) return; // Skip numerical characters
         char.states.forEach((s) => {
           if (s.id === item.id) {
             character = char;
@@ -222,6 +222,7 @@ function App() {
         });
       });
 
+      if (!character) return; // State not found (shouldn't happen)
       character.states = character.states.map((s) => {
         if (item.id === s.id) {
           return item;
@@ -268,9 +269,10 @@ function App() {
     if (itemType === "state") {
       let character = deepClone(
         c.characters.find(
-          (char) => !!char.states.find((state) => state.id === item.id)
+          (char) => char.states && !!char.states.find((state) => state.id === item.id)
         )
       );
+      if (!character) return; // State not found (shouldn't happen)
       character.states = character.states.filter((s) => item.id !== s.id);
 
       return character;

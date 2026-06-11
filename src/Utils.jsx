@@ -16,6 +16,10 @@ export const languageNames = {
   sv: "Svenska",
 };
 
+// "YYYY-MM-DD HH:mm:ss" in local time — sv-SE's locale format happens to match.
+export const nowString = () =>
+  new Date().toLocaleString("sv-SE").replace("T", " ");
+
 export const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
@@ -514,7 +518,9 @@ export const deepClone = (item) => {
   if (!item) {
     return item;
   }
-  return JSON.parse(JSON.stringify(item));
+  // structuredClone is faster than JSON.parse(JSON.stringify())
+  // and handles more data types correctly
+  return structuredClone(item);
 };
 
 export const changeStatement = (
@@ -698,6 +704,42 @@ export const getStatementIcon = (freq) => {
   } else if (freq > 0) {
     return sometimesIcon;
   }
+  return "";
+};
+
+/**
+ * Formats a numerical value for display in the table.
+ * @param {Array|null} value - The numerical range [min, max]
+ * @param {object} character - The character object (for unit)
+ * @param {Array} languages - Available languages
+ * @returns {string} Formatted display string
+ */
+export const getNumericalDisplay = (value, character, languages) => {
+  if (!Array.isArray(value)) {
+    return "";
+  }
+
+  const [min, max] = value;
+
+  if (min == null && max == null) {
+    return "";
+  }
+
+  if (min != null && max != null) {
+    if (min === max) {
+      return String(min);
+    }
+    return `${min}–${max}`;
+  }
+
+  if (min != null) {
+    return `≥${min}`;
+  }
+
+  if (max != null) {
+    return `≤${max}`;
+  }
+
   return "";
 };
 
