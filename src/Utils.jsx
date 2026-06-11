@@ -16,6 +16,10 @@ export const languageNames = {
   sv: "Svenska",
 };
 
+// "YYYY-MM-DD HH:mm:ss" in local time — sv-SE's locale format happens to match.
+export const nowString = () =>
+  new Date().toLocaleString("sv-SE").replace("T", " ");
+
 export const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);

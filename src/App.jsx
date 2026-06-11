@@ -14,8 +14,7 @@ import JsonView from "./components/JsonView";
 import TestView from "./components/TestView";
 import TaxonView from "./components/TaxonView";
 import { v4 as uuidv4 } from "uuid";
-import moment from "moment";
-import { deepClone } from "./Utils";
+import { deepClone, nowString } from "./Utils";
 import TabularView from "./components/tabularView";
 import Analyze from "./components/Analyze";
 import TaxonFilter from "./components/TaxonFilter";
@@ -29,7 +28,7 @@ function App() {
     $schema:
       "https://raw.githubusercontent.com/WouterKoch/Clavis/main/Schema/Clavis.json",
     identifier: uuidv4(),
-    lastModified: moment().format("YYYY-MM-DD HH:mm:ss"),
+    lastModified: nowString(),
     language: [],
     title: {},
     externalServices: [

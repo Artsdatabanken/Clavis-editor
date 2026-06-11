@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Button, Card, CardContent, Alert } from "@mui/material";
-import moment from "moment";
 import "../App.css";
-import { cleanClavis, deepClone } from "../Utils";
+import { cleanClavis, deepClone, nowString } from "../Utils";
 import { useNavigate } from "react-router-dom";
 import { flattenTaxa } from "../Utils";
 import { v4 as uuidv4 } from "uuid";
@@ -200,7 +199,7 @@ function Files({ clavis, setClavis }) {
 
   const downloadKey = () => {
     let export_file = deepClone(clavis);
-    let now = moment().format("YYYY-MM-DD HH:mm:ss");
+    let now = nowString();
     export_file["lastModified"] = now;
 
     var dataStr =
