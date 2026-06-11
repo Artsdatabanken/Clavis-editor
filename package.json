@@ -8,7 +8,7 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "setup-dev": "node scripts/setup-viewer.js"
+    "setup-dev": "node scripts/setup-viewer.cjs"
   },
   "dependencies": {
     "@artsdatabanken/clavis-viewer-web": "latest",
