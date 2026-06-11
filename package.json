@@ -11,7 +11,7 @@
     "setup-dev": "node scripts/setup-viewer.js"
   },
   "dependencies": {
-    "@artsdatabanken/clavis-viewer-web": "^1.2.0",
+    "@artsdatabanken/clavis-viewer-web": "latest",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@emotion/react": "^11.14.0",
